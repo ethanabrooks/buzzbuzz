@@ -10,6 +10,7 @@ using namespace arma;
 int numLights = 4;
 mat centroids;
 vector <vec> velocities;
+vector <wall_nodes> wallNodesList;
 
 MyPlayer::MyPlayer()
 {
@@ -85,9 +86,17 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
 
         velocities.push_back(vec({0, 0}));
     }
+
+    for (Wall* wall : this->walls) {
+        double lightRadius = this->lights[0]->radius;
+        vec p1 = glmToArma(wall->point1);
+        vec p2 = glmToArma(wall->point2);
+        wall_nodes* nodes = new wall_nodes;
+        nodes->point1 = getWallNode(p1, p2, lightRadius);
+        nodes->point2 = getWallNode(p2, p1, lightRadius);
+        wallNodesList.push_back(*nodes);
+    }
 }
-
-
 
 /*
  * This method is called once per "step" in the simulation.
@@ -96,7 +105,6 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
  * The parameter specifies the number of mosquitoes at board->at(x).at(y)
  * You can access the walls through this object's "walls" field, which is a vector of Wall*
  */
-
 void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     // coordinates of mosquitos outside light
     mat coords = getCoords(board, this->lights);
@@ -120,12 +128,17 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     }
     for (int i = 0; i < this->lights.length(); i++) {
 
+        // this gets the current position of the light
+        glm::vec2 currPos = this->lights.at(i)->getPosition();
+
+        // get adjacency list
+        Node source = Node(glmToArma(currPos));
+        Node dest = Node(vec({0, 0}));
+        addEdgesBetween(&source, &dest, wallNodesList);
+
         // can't change ligth position more than one unit
         vec velocity = normalise(velocities[i] + acceleration * deltas[i]) / 2;
         velocities[i] = velocity;
-
-        // this gets the current position of the light
-        glm::vec2 currPos = this->lights.at(i)->getPosition();
 
         this->lights.at(i)->moveTo(currPos.x+velocity[0],
                                    currPos.y+velocity[1]);
@@ -137,8 +150,5 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
          */
 
     }
-
-
-
 }
 

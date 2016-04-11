@@ -28,9 +28,9 @@ void Board::initialize() {
     this->mosquitoesCaught = 0;
     this->mosquitoes.clear();
     this->lights.clear();
-    //this->walls.clear();
+//    this->walls.clear();
     this->player->lights.clear();
-    //this->player->walls.clear();
+//    this->player->walls.clear();
 
 
     for (int i = 0; i < this->numMosquitoes; i++) {
