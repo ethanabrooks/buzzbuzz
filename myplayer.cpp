@@ -12,20 +12,6 @@ mat centroids;
 vector <vec> velocities;
 vector <wall_nodes> wallNodesList;
 
-class Node {
-  public: vector<Node> neighbors;
-          vec coordinate;
-          Node(vec coordinate) {
-            this->coordinate = coordinate;
-            this->neighbors = {};
-          }
-          void addNeighbor(Node neighbor) {
-            this->neighbors.push_back(neighbor);
-          }
-          bool operator==(const Node& node) {
-            return all(this->coordinate==node.coordinate);
-          }
-};
 
 double getDistance(Node vertex1, Node vertex2) {
     double xdiff = vertex1.coordinate[0] - vertex2.coordinate[0];
@@ -49,9 +35,9 @@ namespace std
 
 std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
     std::vector<Node>* path = new std::vector<Node>;
-    std::vector<Node>::iterator it = currentPosition.neighbors.begin();
+    std::vector<Node*>::iterator it = currentPosition.neighbors.begin();
     while(it != currentPosition.neighbors.end()) {
-        if(*it == destination) {
+        if(**it == destination) {
             path->push_back(destination);
             return *path;
         }
@@ -68,14 +54,14 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
             break;
         } else {
             active.erase(active.begin());
-            for(Node i : current.neighbors) {
-                map<Node,double>::iterator it = dist.find(i);
+            for(Node* i : current.neighbors) {
+                map<Node,double>::iterator it = dist.find(*i);
                 map<Node,double>::iterator pre = dist.find(current);
-                if(it == dist.end() || it->second > pre->second + getDistance(i, current)) {
+                if(it == dist.end() || it->second > pre->second + getDistance(*i, current)) {
                  qDebug() << "making it"<<endl;
-                 dist[i] = pre->second + getDistance(i, current);
-                 prev[i] = current.coordinate;
-                 active.insert(i);
+                 dist[*i] = pre->second + getDistance(*i, current);
+                 prev[*i] = current.coordinate;
+                 active.insert(*i);
                 }
             }
 
