@@ -134,7 +134,7 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
         // MEREDITH: THIS IS PROBABLY WHERE YOU WANT TO ADD YOUR CODE:
         // get adjacency list
         Node source = Node(glmToArma(currPos));
-        Node dest = Node(vec({0, 0}));
+        Node dest = Node(centroids.col(i));
         addEdgesBetween(&source, &dest, wallNodesList);
         // AT THIS POINT, source IS THE ROOT OF A GRAPH THAT YOU CAN TRAVERSE WITH DIJKSTRA'S
         // WE ALSO DON'T WANT TO HARD CODE DEST -- BUT WE CAN TALK ABOUT THAT.
