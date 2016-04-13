@@ -41,11 +41,11 @@ double getTotalDistance(Node& vertex1, Node& vertex2) {
 
 namespace std
 {
-    template<> struct less<Node>
+    template<> struct less<vec>
     {
-       bool operator() (const Node& lhs, const Node& rhs) const
+       bool operator() (const vec& lhs, const vec& rhs) const
        {
-           return lhs.coordinate[0] < rhs.coordinate[0];
+           return lhs[0] < rhs[0];
        }
     };
 }
