@@ -20,6 +20,12 @@ class Node {
           bool operator==(const Node& node) {
             return all(this->coordinate==node.coordinate);
           }
+
+          bool operator<(const Node& node) const {
+            vec a = this->coordinate;
+            vec b = node.coordinate;
+            return a[0] == b[0]? a[1] < b[1] : a[0] < b[0];
+          }
 };
 
 typedef struct {

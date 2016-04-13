@@ -3,6 +3,7 @@
 #include <armadillo>
 #include <QDebug>
 #include <math.h>
+#include <set>
 
 using namespace std;
 using namespace arma;
