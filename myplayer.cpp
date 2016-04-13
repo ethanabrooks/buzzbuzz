@@ -41,11 +41,11 @@ double getTotalDistance(Node& vertex1, Node& vertex2) {
 
 namespace std
 {
-    template<> struct less<Node>
+    template<> struct less<vec>
     {
-       bool operator() (const Node& lhs, const Node& rhs) const
+       bool operator() (const vec& lhs, const vec& rhs) const
        {
-           return lhs.coordinate[0] < rhs.coordinate[0];
+           return lhs[0] < rhs[0];
        }
     };
 }
@@ -110,7 +110,7 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
 }
 
 vec getDelta(vec light, vec centroid) {
-  vector<Node> path = runDjikstra(Node(light), Node(centroid));
+  vector<Node> path = runDijkstra(Node(light), Node(centroid));
   return path[0] - light;
 }
 
