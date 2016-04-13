@@ -12,6 +12,77 @@ mat centroids;
 vector <vec> velocities;
 vector <wall_nodes> wallNodesList;
 
+
+double getDistance(Node vertex1, Node vertex2) {
+    double xdiff = vertex1.coordinate[0] - vertex2.coordinate[0];
+    double ydiff = vertex1.coordinate[1] - vertex2.coordinate[1];
+    double distance;
+    distance = pow(xdiff, 2) + pow(ydiff, 2);
+    distance = sqrt(distance);
+    return distance;
+}
+
+namespace std
+{
+    template<> struct less<Node>
+    {
+       bool operator() (const Node& lhs, const Node& rhs) const
+       {
+           return lhs.coordinate[0] < rhs.coordinate[0];
+       }
+    };
+}
+
+std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
+    std::vector<Node>* path = new std::vector<Node>;
+    std::vector<Node*>::iterator it = currentPosition.neighbors.begin();
+    while(it != currentPosition.neighbors.end()) {
+        if(**it == destination) {
+            path->push_back(destination);
+            return *path;
+        }
+        it++;
+    }
+    std::map<Node, double> dist;
+    std::map<Node, vec> prev;
+    dist[currentPosition] = 0.0;
+    set<Node> active;
+    active.insert(currentPosition);
+    while(!active.empty()) {
+        Node current = *active.begin();
+        if(current == destination) {
+            break;
+        } else {
+            active.erase(active.begin());
+            for(Node* i : current.neighbors) {
+                map<Node,double>::iterator it = dist.find(*i);
+                map<Node,double>::iterator pre = dist.find(current);
+                if(it == dist.end() || it->second > pre->second + getDistance(*i, current)) {
+                 qDebug() << "making it"<<endl;
+                 dist[*i] = pre->second + getDistance(*i, current);
+                 prev[*i] = current.coordinate;
+                 active.insert(*i);
+                }
+            }
+
+        }
+    }
+    map<Node, vec>::iterator pathIt = prev.find(destination);
+    path->insert(path->begin(), Node(destination.coordinate));
+    while(pathIt != prev.find(currentPosition)) {
+        vec p = pathIt->second;
+        qDebug() << p[0] << endl;
+        path->insert(path->begin(),Node(p));
+        //path->insert(path->begin(),*next);
+        pathIt = prev.find(Node(p));
+    }
+    qDebug() << "size: " << path->size() << endl;
+    return *path;
+
+
+
+}
+
 MyPlayer::MyPlayer()
 {
     this->playerName = "My Player";
