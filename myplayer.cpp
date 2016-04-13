@@ -8,6 +8,8 @@
 using namespace std;
 using namespace arma;
 
+std::vector<Node>& runDijkstra(Node currentPosition, Node destination);
+
 int numLights = 4;
 mat centroids;
 vector <vec> velocities;
@@ -21,6 +23,20 @@ double getDistance(Node vertex1, Node vertex2) {
     distance = pow(xdiff, 2) + pow(ydiff, 2);
     distance = sqrt(distance);
     return distance;
+}
+
+double getTotalDistance(Node& vertex1, Node& vertex2) {
+    double totalDistance = 0;
+    vector<Node>& path = runDijkstra(vertex1, vertex2);
+    Node prev = vertex1;
+    Node next = path.at(1);
+    for(int i = 2; i < path.size(); i++) {
+        totalDistance+=getDistance(prev, next);
+        prev = next;
+        next = path.at(i);
+    }
+    totalDistance+=getDistance(prev, next);
+    return totalDistance;
 }
 
 namespace std
@@ -44,9 +60,9 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
         }
         it++;
     }
-    std::map<Node, double> dist;
+    std::map<vec, double> dist;
     std::map<Node, vec> prev;
-    dist[currentPosition] = 0.0;
+    dist[currentPosition.coordinate] = 0.0;
     set<Node> active;
     active.insert(currentPosition);
     while(!active.empty()) {
@@ -56,11 +72,20 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
         } else {
             active.erase(active.begin());
             for(Node* i : current.neighbors) {
-                map<Node,double>::iterator it = dist.find(*i);
-                map<Node,double>::iterator pre = dist.find(current);
+                map<vec,double>::iterator it = dist.begin();
+                while(it != dist.end()) {
+                    if(it->first[0] == i->coordinate[0] && it->first[1] == i->coordinate[1] ) break;
+                    it++;
+
+                }
+                map<vec,double>::iterator pre = dist.begin();
+                while(pre != dist.end()) {
+                    if(pre->first[0] == current.coordinate[0] && pre->first[1] == current.coordinate[1] ) break;
+                    pre++;
+                }
                 if(it == dist.end() || it->second > pre->second + getDistance(*i, current)) {
                  qDebug() << "making it"<<endl;
-                 dist[*i] = pre->second + getDistance(*i, current);
+                 dist[i->coordinate] = pre->second + getDistance(*i, current);
                  prev[*i] = current.coordinate;
                  active.insert(*i);
                 }
@@ -78,6 +103,9 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
     }
     qDebug() << "size: " << path->size() << endl;
     return *path;
+
+
+
 }
 
 vec getDelta(vec light, vec centroid) {
