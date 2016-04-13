@@ -79,9 +79,38 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
     }
     qDebug() << "size: " << path->size() << endl;
     return *path;
+}
 
+vec getDelta(vec light, vec centroid) {
+  vector<Node> path = runDjikstra(Node(light), Node(centroid));
+  return path[0] - light;
+}
 
+vector<vec> getDistVecs(mat centroids,
+                        QList<Light*> lights,
+                        bool replace_centroids=false) {
+    vector<vec> deltas;
+    vector<vec> available;
+    centroids.each_col([&](vec& centroidPos){
+        available.push_back(centroidPos);
+    });
+    for (Light* light : lights) {
 
+        // convert glm::vec to vec
+        vec lightPos = glmToArma(light->getPosition());
+
+        // get direction of shortest distance
+        vector<vec>::iterator closestCentroid =
+          min_element(available.begin(), available.end(),
+              [&](vec c1, vec c2){
+                return norm(c1 - lightPos) < norm(c2 - lightPos);
+              });
+        deltas.push_back(getDelta(lightPos, closestCentroid));
+        if (!replace_centroids) {
+            available.erase(closestCentroid );
+        }
+    }
+    return deltas;
 }
 
 MyPlayer::MyPlayer()
@@ -178,11 +207,13 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
  * You can access the walls through this object's "walls" field, which is a vector of Wall*
  */
 void MyPlayer::updateLights(QVector<QVector<int> >* board) {
+
     // coordinates of mosquitos outside light
     mat coords = getCoords(board, this->lights);
     vector<vec> deltas;
     int numLights = this->lights.size();
     int numMosqsToCatch = size(coords)[1];
+
     float smoothing = 3000; //1500;
     float acceleration = 1 / (smoothing * cbrt(numMosqsToCatch) + 1);
     if (numMosqsToCatch < numLights) {
