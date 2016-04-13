@@ -27,6 +27,11 @@ double getDistance(Node vertex1, Node vertex2) {
 
 double getTotalDistance(Node& vertex1, Node& vertex2) {
     double totalDistance = 0;
+    qDebug() << "num neighbors: " << vertex1.neighbors.size();
+    for (Node* n : vertex1.neighbors) {
+        qDebug() << n->coordinate[0] << endl;
+        qDebug() << n->coordinate[1] << endl;
+    }
     vector<Node>& path = runDijkstra(vertex1, vertex2);
     Node prev = vertex1;
     Node next = path.at(1);
@@ -55,6 +60,7 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
     std::vector<Node*>::iterator it = currentPosition.neighbors.begin();
     while(it != currentPosition.neighbors.end()) {
         if(**it == destination) {
+            path->push_back(currentPosition);
             path->push_back(destination);
             return *path;
         }
@@ -108,11 +114,6 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
 
 }
 
-vec getDelta(vec light, vec centroid) {
-  vector<Node> path = runDijkstra(Node(light), Node(centroid));
-  return path[0].coordinate - light;
-}
-
 vector<vec> getDistVecs(mat centroids,
                         QList<Light*> lights,
                         bool replace_centroids=false) {
@@ -131,14 +132,18 @@ vector<vec> getDistVecs(mat centroids,
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
                 Node n1(c1), n2(c2);
-                addEdgesBetween(&n1, &lightPos, wallNodesList);
-                addEdgesBetween(&n2, &lightPos, wallNodesList);
-                return getTotalDistance(lightPos, n1) < getTotalDistance(lightPos, n2);
+                addEdgesBetween(&lightPos, &n1, wallNodesList);
+                addEdgesBetween(&lightPos, &n2, wallNodesList);
+                qDebug() << "num neighbors: " << lightPos.neighbors.size();
+                double ton1 = getTotalDistance(lightPos, n1);
+                double ton2 = getTotalDistance(lightPos, n2);
+                bool res = ton1 < ton2;
+                return res;
               });
         Node centroidNode(*closestCentroid);
         addEdgesBetween(&lightPos, &centroidNode, wallNodesList);
         vector<Node> path = runDijkstra(lightPos, centroidNode);
-        deltas.push_back(path[0].coordinate - lightPos.coordinate);
+        deltas.push_back(normalise(path[1].coordinate - lightPos.coordinate));
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
@@ -266,14 +271,6 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
 
         // this gets the current position of the light
         glm::vec2 currPos = this->lights.at(i)->getPosition();
-
-        // MEREDITH: THIS IS PROBABLY WHERE YOU WANT TO ADD YOUR CODE:
-        // get adjacency list
-        Node source = Node(glmToArma(currPos));
-        Node dest = Node(centroids.col(i));
-        addEdgesBetween(&source, &dest, wallNodesList);
-        // AT THIS POINT, source IS THE ROOT OF A GRAPH THAT YOU CAN TRAVERSE WITH DIJKSTRA'S
-        // WE ALSO DON'T WANT TO HARD CODE DEST -- BUT WE CAN TALK ABOUT THAT.
 
         // can't change ligth position more than one unit
         vec velocity = normalise(velocities[i] + acceleration * deltas[i]) / 2;

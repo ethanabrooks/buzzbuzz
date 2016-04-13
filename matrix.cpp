@@ -120,3 +120,11 @@ Node* getWallNode(vec near, vec far, double lightRadius) {
   return new Node(position);
 }
 
+ostream& operator<<(ostream& os, const Node& node)
+{
+  os << node.coordinate[0] << ", " << node.coordinate[1] << endl;
+  for (Node* neighbor : node.neighbors) {
+    os << "- " << *neighbor << endl;
+  }
+  return os;
+}
