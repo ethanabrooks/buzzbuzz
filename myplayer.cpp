@@ -130,9 +130,15 @@ vector<vec> getDistVecs(mat centroids,
         vector<vec>::iterator closestCentroid =
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
-                return norm(c1 - lightPos) < norm(c2 - lightPos);
+                Node n1(c1), n2(c2);
+                addEdgesBetween(&n1, &lightPos, wallNodesList);
+                addEdgesBetween(&n2, &lightPos, wallNodesList);
+                return getTotalDistance(lightPos, n1) < getTotalDistance(lightPos, n2);
               });
-        deltas.push_back(getDelta(lightPos, *closestCentroid));
+        Node centroidNode(*closestCentroid);
+        addEdgesBetween(&lightPos, &centroidNode, wallNodesList);
+        vector<Node> path = runDijkstra(lightPos, centroidNode);
+        deltas.push_back(path[0].coordinate - lightPos.coordinate);
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
