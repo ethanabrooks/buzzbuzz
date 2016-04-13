@@ -59,32 +59,7 @@ mat getCentroids(mat coords, int num) {
     return centroids;
 }
 
-vector<vec> getDistVecs(mat centroids,
-                        QList<Light*> lights,
-                        bool replace_centroids=false) {
-    vector<vec> deltas;
-    vector<vec> available;
-    centroids.each_col([&](vec& centroidPos){
-        available.push_back(centroidPos);
-    });
-    for (Light* light : lights) {
 
-        // convert glm::vec to vec
-        vec lightPos = glmToArma(light->getPosition());
-
-        // get direction of shortest distance
-        vector<vec>::iterator closestCentroid =
-          min_element(available.begin(), available.end(),
-              [&](vec c1, vec c2){
-                return norm(c1 - lightPos) < norm(c2 - lightPos);
-              });
-        deltas.push_back(*closestCentroid - lightPos);
-        if (!replace_centroids) {
-            available.erase(closestCentroid );
-        }
-    }
-    return deltas;
-}
 
 vec getLineParams(vec p1, vec p2) {
   mat line1 = join_horiz(p1, p2).t();

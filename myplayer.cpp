@@ -65,7 +65,6 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
                  active.insert(*i);
                 }
             }
-
         }
     }
     map<Node, vec>::iterator pathIt = prev.find(destination);
@@ -82,8 +81,8 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
 }
 
 vec getDelta(vec light, vec centroid) {
-  vector<Node> path = runDjikstra(Node(light), Node(centroid));
-  return path[0] - light;
+  vector<Node> path = runDijkstra(Node(light), Node(centroid));
+  return path[0].coordinate - light;
 }
 
 vector<vec> getDistVecs(mat centroids,
@@ -97,7 +96,7 @@ vector<vec> getDistVecs(mat centroids,
     for (Light* light : lights) {
 
         // convert glm::vec to vec
-        vec lightPos = glmToArma(light->getPosition());
+        Node lightPos = Node(glmToArma(light->getPosition()));
 
         // get direction of shortest distance
         vector<vec>::iterator closestCentroid =
@@ -105,7 +104,7 @@ vector<vec> getDistVecs(mat centroids,
               [&](vec c1, vec c2){
                 return norm(c1 - lightPos) < norm(c2 - lightPos);
               });
-        deltas.push_back(getDelta(lightPos, closestCentroid));
+        deltas.push_back(getDelta(lightPos, *closestCentroid));
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
