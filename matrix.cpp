@@ -1,41 +1,15 @@
 #include "light.h"
 #include "matrix.h"
 #include <armadillo>
+#include <set>
 #include <QVector>
+#include <QDebug>
+#include <mutex>
 
 using namespace std;
 using namespace arma;
 
-class Node {
-  public: vector<Node*> neighbors;
-          vec coordinate;
-          Node(vec coordinate) {
-            init(coordinate);
-          }
-
-          Node(vec sourceVec, vec destinationVec, vector<wall_nodes> walls) {
-              init(coordinate);
-              Node destination(destinationVec);
-              addEdgesBetween(this, &destination, walls);
-          }
-
-          void addNeighbor(Node* neighbor) {
-            this->neighbors.push_back(neighbor);
-          }
-          bool operator==(const Node& node) {
-            return all(this->coordinate==node.coordinate);
-          }
-
-          bool operator<(const Node& node) const {
-            vec a = this->coordinate;
-            vec b = node.coordinate;
-            return a[0] == b[0]? a[1] < b[1] : a[0] < b[0];
-          }
-    private: void init(vec coordinate) {
-              this->coordinate = coordinate;
-              this->neighbors = {};
-          }
-};
+mutex mtx;
 
 bool withinLight(glm::vec2 objPos,
                  QList<Light*> lights) {
@@ -119,9 +93,16 @@ bool liesBetween(vec linePoint1, vec linePoint2, vec point) {
 
 bool intersects(vec startpoint1, vec endpoint1,
                  vec startpoint2, vec endpoint2) {
-  vec intercept = getIntercept(startpoint1, endpoint1, startpoint2, endpoint2);
-  return liesBetween(startpoint1, endpoint1, intercept)
-      && liesBetween(startpoint2, endpoint2, intercept);
+    set<Node> s;
+    for (vec v : {startpoint1, startpoint2, endpoint1, endpoint2}) {
+        s.insert(Node(v));
+    }
+    if (s.size() < 4) {
+        return false;
+    }
+    vec intercept = getIntercept(startpoint1, endpoint1, startpoint2, endpoint2);
+    return liesBetween(startpoint1, endpoint1, intercept)
+    && liesBetween(startpoint2, endpoint2, intercept);
 }
 
 bool intersects(vec startpoint, vec endpoint, wall_nodes wall) {
@@ -129,19 +110,27 @@ bool intersects(vec startpoint, vec endpoint, wall_nodes wall) {
       wall.point1->coordinate, wall.point2->coordinate);
 }
 
-void addEdgesBetween(Node* here, Node* there, vector<wall_nodes> walls) {
+Node addEdgesBetween(Node* here, Node* there, vector<wall_nodes> walls) {
+
+ qDebug() << "starting addEdgesBetween. " << endl;
+ qDebug() << "num neighbors to start: " << here->neighbors.size() << endl;
   bool straightShot = true;
   for (wall_nodes wall : walls) {
     if (intersects(here->coordinate, there->coordinate, wall)) {
       straightShot = false;
-      addEdgesBetween(here, wall.point1, walls);
-      addEdgesBetween(here, wall.point2, walls);
-      addEdgesBetween(wall.point1, there, walls);
-      addEdgesBetween(wall.point2, there, walls);
+      Node wall1 = addEdgesBetween(wall.point1, there, walls);
+      qDebug() << "num neighbors created in wall1: " << wall1->neighbors.size() << endl;
+      Node wall2 =addEdgesBetween(wall.point2, there, walls);
+      qDebug() << "num neighbors created in wall2: " << wall2->neighbors.size() << endl;
+      here = addEdgesBetween(here, wall1, walls);
+
+      here = addEdgesBetween(here, wall2, walls);
+      qDebug() << "num neighbors created in 'here': " << here->neighbors.size() << endl;
+      return here;
     }
   }
   if (straightShot) {
-    here->addNeighbor(there);
+    return here->withNeighbor(there);
   }
 }
 

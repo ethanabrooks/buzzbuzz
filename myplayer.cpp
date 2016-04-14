@@ -25,14 +25,12 @@ double getDistance(Node vertex1, Node vertex2) {
     return distance;
 }
 
-double getTotalDistance(Node& vertex1, Node& vertex2) {
+double getTotalDistance(vec coordinate1, vec coordinate2) {
+    Node vertex1(coordinate1), vertex2(coordinate2);
+    qDebug() << "Num neighbors in vertex1: " << vertex1.neighbors.size() << endl;
+    addEdgesBetween(&vertex1, &vertex2, wallNodesList);
     double totalDistance = 0;
-    qDebug() << "num neighbors: " << vertex1.neighbors.size();
-    for (Node* n : vertex1.neighbors) {
-        qDebug() << n->coordinate[0] << endl;
-        qDebug() << n->coordinate[1] << endl;
-    }
-    vector<Node>& path = runDijkstra(vertex1, vertex2);
+    vector<Node> path = runDijkstra(vertex1, vertex2);
     Node prev = vertex1;
     Node next = path.at(1);
     for(int i = 2; i < path.size(); i++) {
@@ -90,7 +88,6 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
                     pre++;
                 }
                 if(it == dist.end() || it->second > pre->second + getDistance(*i, current)) {
-                 qDebug() << "making it"<<endl;
                  dist[i->coordinate] = pre->second + getDistance(*i, current);
                  prev[*i] = current.coordinate;
                  active.insert(*i);
@@ -102,16 +99,11 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
     path->insert(path->begin(), Node(destination.coordinate));
     while(pathIt != prev.find(currentPosition)) {
         vec p = pathIt->second;
-        qDebug() << p[0] << endl;
         path->insert(path->begin(),Node(p));
         //path->insert(path->begin(),*next);
         pathIt = prev.find(Node(p));
     }
-    qDebug() << "size: " << path->size() << endl;
     return *path;
-
-
-
 }
 
 vector<vec> getDistVecs(mat centroids,
@@ -131,15 +123,13 @@ vector<vec> getDistVecs(mat centroids,
         vector<vec>::iterator closestCentroid =
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
-                Node light1(lightPos, c1, wallNodesList);
-                double ton1 = getTotalDistance(light1, Node(c1));
-                Node light1(lightPos, c1, wallNodesList);
-                double ton2 = getTotalDistance(light2, Node(c2));
+                double ton1 = getTotalDistance(lightPos, c1);
+                double ton2 = getTotalDistance(lightPos, c2);
                 bool res = ton1 < ton2;
                 return res;
               });
-        Node centroidNode(*closestCentroid);
-        Node lightNode(lightPos);
+        Node lightNode(lightPos), centroidNode(*closestCentroid);
+        qDebug() << "Num neighbors in lightNode: " << lightNode.neighbors.size() << endl;
         addEdgesBetween(&lightNode, &centroidNode, wallNodesList);
         vector<Node> path = runDijkstra(lightNode, centroidNode);
         deltas.push_back(normalise(path[1].coordinate - lightPos));
