@@ -87,8 +87,9 @@ mat getIntercept(vec startpoint1, vec endpoint1,
 bool liesBetween(vec linePoint1, vec linePoint2, vec point) {
   double x1 = linePoint1[0];
   double x2 = linePoint2[0];
-  double xPoint = point[0];\
-  return (x1 < xPoint && xPoint < x2) || (x1 > xPoint && xPoint > x2);
+  double xPoint = point[0];
+  bool res = (x1 < xPoint && xPoint < x2) || (x1 > xPoint && xPoint > x2);
+  return res;
 }
 
 bool intersects(vec startpoint1, vec endpoint1,
@@ -110,23 +111,21 @@ bool intersects(vec startpoint, vec endpoint, wall_nodes wall) {
       wall.point1.coordinate, wall.point2.coordinate);
 }
 
-Node addEdgesBetween(Node here, Node there, vector<wall_nodes> walls) {
-
- qDebug() << "starting addEdgesBetween. " << endl;
- qDebug() << "num neighbors to start: " << here.neighbors.size() << endl;
+Node graphBetween(Node here, Node there, vector<wall_nodes> walls) {
   bool straightShot = true;
   for (wall_nodes wall : walls) {
     if (intersects(here.coordinate, there.coordinate, wall)) {
+      qDebug() << "num neighbors to start: " << here.neighbors.size() << endl;
       straightShot = false;
-      Node wall1 = addEdgesBetween(wall.point1, there, walls);
+      Node wall1 = graphBetween(wall.point1, there, walls);
       qDebug() << "num neighbors created in wall1: " << wall1.neighbors.size() << endl;
-      Node wall2 =addEdgesBetween(wall.point2, there, walls);
+      Node wall2 =graphBetween(wall.point2, there, walls);
       qDebug() << "num neighbors created in wall2: " << wall2.neighbors.size() << endl;
-      here = addEdgesBetween(here, wall1, walls);
-
-      here = addEdgesBetween(here, wall2, walls);
+      here = graphBetween(here, wall1, walls);
       qDebug() << "num neighbors created in 'here': " << here.neighbors.size() << endl;
-      return here;
+      Node here2 = graphBetween(here, wall2, walls);
+      qDebug() << "num neighbors created in 'here2': " << here2.neighbors.size() << endl;
+      return here2;
     }
   }
   if (straightShot) {

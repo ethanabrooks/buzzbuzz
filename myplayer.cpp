@@ -27,8 +27,7 @@ double getDistance(Node vertex1, Node vertex2) {
 
 double getTotalDistance(vec coordinate1, vec coordinate2) {
     Node vertex1(coordinate1), vertex2(coordinate2);
-    qDebug() << "Num neighbors in vertex1: " << vertex1.neighbors.size() << endl;
-    addEdgesBetween(vertex1, vertex2, wallNodesList);
+    vertex1 = graphBetween(vertex1, vertex2, wallNodesList);
     double totalDistance = 0;
     vector<Node> path = runDijkstra(vertex1, vertex2);
     Node prev = vertex1;
@@ -129,8 +128,7 @@ vector<vec> getDistVecs(mat centroids,
                 return res;
               });
         Node lightNode(lightPos), centroidNode(*closestCentroid);
-        qDebug() << "Num neighbors in lightNode: " << lightNode.neighbors.size() << endl;
-        addEdgesBetween(lightNode, centroidNode, wallNodesList);
+        lightNode = graphBetween(lightNode, centroidNode, wallNodesList);
         vector<Node> path = runDijkstra(lightNode, centroidNode);
         deltas.push_back(normalise(path[1].coordinate - lightPos));
         if (!replace_centroids) {

@@ -2,6 +2,7 @@
 #define MATRIX_H
 #include <armadillo>
 #include <QVector>
+#include <QDebug>
 #include "light.h"
 
 using namespace std;
@@ -17,10 +18,11 @@ class Node {
           }
 
           Node withNeighbor(Node neighbor) {
-            Node newNode(this->coordinate);
+            Node newNode = *this;
             newNode.neighbors.push_back(neighbor);
             return newNode;
           }
+
           bool operator==(const Node& node) {
             return all(this->coordinate==node.coordinate);
           }
@@ -42,5 +44,5 @@ mat getCoords(QVector<QVector<int> >* board, QList<Light*> lights);
 mat getCentroids(mat coords, int num);
 vector<vec> getDistVecs(mat centroids, QList<Light*> lights, bool replace_centroids);
 vec glmToArma(glm::vec2);
-Node addEdgesBetween(Node here, Node there, vector<wall_nodes> walls);
+Node graphBetween(Node here, Node there, vector<wall_nodes> walls);
 #endif
