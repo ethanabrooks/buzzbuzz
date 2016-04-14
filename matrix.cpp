@@ -87,7 +87,7 @@ mat getIntercept(vec startpoint1, vec endpoint1,
 bool liesBetween(vec linePoint1, vec linePoint2, vec point) {
   double x1 = linePoint1[0];
   double x2 = linePoint2[0];
-  double xPoint = point[0];
+  double xPoint = point[0];\
   return (x1 < xPoint && xPoint < x2) || (x1 > xPoint && xPoint > x2);
 }
 
@@ -107,44 +107,44 @@ bool intersects(vec startpoint1, vec endpoint1,
 
 bool intersects(vec startpoint, vec endpoint, wall_nodes wall) {
   return intersects(startpoint, endpoint,
-      wall.point1->coordinate, wall.point2->coordinate);
+      wall.point1.coordinate, wall.point2.coordinate);
 }
 
-Node addEdgesBetween(Node* here, Node* there, vector<wall_nodes> walls) {
+Node addEdgesBetween(Node here, Node there, vector<wall_nodes> walls) {
 
  qDebug() << "starting addEdgesBetween. " << endl;
- qDebug() << "num neighbors to start: " << here->neighbors.size() << endl;
+ qDebug() << "num neighbors to start: " << here.neighbors.size() << endl;
   bool straightShot = true;
   for (wall_nodes wall : walls) {
-    if (intersects(here->coordinate, there->coordinate, wall)) {
+    if (intersects(here.coordinate, there.coordinate, wall)) {
       straightShot = false;
       Node wall1 = addEdgesBetween(wall.point1, there, walls);
-      qDebug() << "num neighbors created in wall1: " << wall1->neighbors.size() << endl;
+      qDebug() << "num neighbors created in wall1: " << wall1.neighbors.size() << endl;
       Node wall2 =addEdgesBetween(wall.point2, there, walls);
-      qDebug() << "num neighbors created in wall2: " << wall2->neighbors.size() << endl;
+      qDebug() << "num neighbors created in wall2: " << wall2.neighbors.size() << endl;
       here = addEdgesBetween(here, wall1, walls);
 
       here = addEdgesBetween(here, wall2, walls);
-      qDebug() << "num neighbors created in 'here': " << here->neighbors.size() << endl;
+      qDebug() << "num neighbors created in 'here': " << here.neighbors.size() << endl;
       return here;
     }
   }
   if (straightShot) {
-    return here->withNeighbor(there);
+    return here.withNeighbor(there);
   }
 }
 
-Node* getWallNode(vec near, vec far, double lightRadius) {
+Node getWallNode(vec near, vec far, double lightRadius) {
   vec offset = normalise(near - far);
   vec position = near + offset;
-  return new Node(position);
+  return Node(position);
 }
 
 ostream& operator<<(ostream& os, const Node& node)
 {
   os << node.coordinate[0] << ", " << node.coordinate[1] << endl;
-  for (Node* neighbor : node.neighbors) {
-    os << "- " << *neighbor << endl;
+  for (Node neighbor : node.neighbors) {
+    os << "- " << neighbor << endl;
   }
   return os;
 }

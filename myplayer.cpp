@@ -28,7 +28,7 @@ double getDistance(Node vertex1, Node vertex2) {
 double getTotalDistance(vec coordinate1, vec coordinate2) {
     Node vertex1(coordinate1), vertex2(coordinate2);
     qDebug() << "Num neighbors in vertex1: " << vertex1.neighbors.size() << endl;
-    addEdgesBetween(&vertex1, &vertex2, wallNodesList);
+    addEdgesBetween(vertex1, vertex2, wallNodesList);
     double totalDistance = 0;
     vector<Node> path = runDijkstra(vertex1, vertex2);
     Node prev = vertex1;
@@ -55,9 +55,9 @@ namespace std
 
 std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
     std::vector<Node>* path = new std::vector<Node>;
-    std::vector<Node*>::iterator it = currentPosition.neighbors.begin();
+    std::vector<Node>::iterator it = currentPosition.neighbors.begin();
     while(it != currentPosition.neighbors.end()) {
-        if(**it == destination) {
+        if(*it == destination) {
             path->push_back(currentPosition);
             path->push_back(destination);
             return *path;
@@ -75,10 +75,10 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
             break;
         } else {
             active.erase(active.begin());
-            for(Node* i : current.neighbors) {
+            for(Node i : current.neighbors) {
                 map<vec,double>::iterator it = dist.begin();
                 while(it != dist.end()) {
-                    if(it->first[0] == i->coordinate[0] && it->first[1] == i->coordinate[1] ) break;
+                    if(it->first[0] == i.coordinate[0] && it->first[1] == i.coordinate[1] ) break;
                     it++;
 
                 }
@@ -87,10 +87,10 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
                     if(pre->first[0] == current.coordinate[0] && pre->first[1] == current.coordinate[1] ) break;
                     pre++;
                 }
-                if(it == dist.end() || it->second > pre->second + getDistance(*i, current)) {
-                 dist[i->coordinate] = pre->second + getDistance(*i, current);
-                 prev[*i] = current.coordinate;
-                 active.insert(*i);
+                if(it == dist.end() || it->second > pre->second + getDistance(i, current)) {
+                 dist[i.coordinate] = pre->second + getDistance(i, current);
+                 prev[i] = current.coordinate;
+                 active.insert(i);
                 }
             }
         }
@@ -130,7 +130,7 @@ vector<vec> getDistVecs(mat centroids,
               });
         Node lightNode(lightPos), centroidNode(*closestCentroid);
         qDebug() << "Num neighbors in lightNode: " << lightNode.neighbors.size() << endl;
-        addEdgesBetween(&lightNode, &centroidNode, wallNodesList);
+        addEdgesBetween(lightNode, centroidNode, wallNodesList);
         vector<Node> path = runDijkstra(lightNode, centroidNode);
         deltas.push_back(normalise(path[1].coordinate - lightPos));
         if (!replace_centroids) {
@@ -219,10 +219,9 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
         double lightRadius = this->lights[0]->radius;
         vec p1 = glmToArma(wall->point1);
         vec p2 = glmToArma(wall->point2);
-        wall_nodes* nodes = new wall_nodes;
-        nodes->point1 = getWallNode(p1, p2, lightRadius);
-        nodes->point2 = getWallNode(p2, p1, lightRadius);
-        wallNodesList.push_back(*nodes);
+        wall_nodes nodes = {.point1 = getWallNode(p1, p2, lightRadius),
+                            .point2 = getWallNode(p2, p1, lightRadius) };
+        wallNodesList.push_back(nodes);
     }
 }
 
