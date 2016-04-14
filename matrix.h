@@ -7,26 +7,7 @@
 using namespace std;
 using namespace arma;
 
-class Node {
-  public: vector<Node*> neighbors;
-          vec coordinate;
-          Node(vec coordinate) {
-            this->coordinate = coordinate;
-            this->neighbors = {};
-          }
-          void addNeighbor(Node* neighbor) {
-            this->neighbors.push_back(neighbor);
-          }
-          bool operator==(const Node& node) {
-            return all(this->coordinate==node.coordinate);
-          }
-
-          bool operator<(const Node& node) const {
-            vec a = this->coordinate;
-            vec b = node.coordinate;
-            return a[0] == b[0]? a[1] < b[1] : a[0] < b[0];
-          }
-};
+class Node;
 
 typedef struct {
   Node* point1;

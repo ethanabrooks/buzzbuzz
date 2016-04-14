@@ -125,25 +125,24 @@ vector<vec> getDistVecs(mat centroids,
     for (Light* light : lights) {
 
         // convert glm::vec to vec
-        Node lightPos = Node(glmToArma(light->getPosition()));
+        vec lightPos = glmToArma(light->getPosition());
 
         // get direction of shortest distance
         vector<vec>::iterator closestCentroid =
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
-                Node n1(c1), n2(c2);
-                addEdgesBetween(&lightPos, &n1, wallNodesList);
-                addEdgesBetween(&lightPos, &n2, wallNodesList);
-                qDebug() << "num neighbors: " << lightPos.neighbors.size();
-                double ton1 = getTotalDistance(lightPos, n1);
-                double ton2 = getTotalDistance(lightPos, n2);
+                Node light1(lightPos, c1, wallNodesList);
+                double ton1 = getTotalDistance(light1, Node(c1));
+                Node light1(lightPos, c1, wallNodesList);
+                double ton2 = getTotalDistance(light2, Node(c2));
                 bool res = ton1 < ton2;
                 return res;
               });
         Node centroidNode(*closestCentroid);
-        addEdgesBetween(&lightPos, &centroidNode, wallNodesList);
-        vector<Node> path = runDijkstra(lightPos, centroidNode);
-        deltas.push_back(normalise(path[1].coordinate - lightPos.coordinate));
+        Node lightNode(lightPos);
+        addEdgesBetween(&lightNode, &centroidNode, wallNodesList);
+        vector<Node> path = runDijkstra(lightNode, centroidNode);
+        deltas.push_back(normalise(path[1].coordinate - lightPos));
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
