@@ -95,6 +95,13 @@ bool liesBetween(vec linePoint1, vec linePoint2, vec point) {
   return (x1 + e < xPoint && xPoint + e < x2)
       || (x1 > xPoint + e && xPoint > x2 + e);
 }
+
+bool inBounds(Node n) {
+    return liesBetween(vec{0, 0},
+                       vec{BOARD_SIZE, BOARD_SIZE},
+                       n.coordinate);
+}
+
 Node graphBetween(Node here, Node there, QList<Wall*> walls) {
   bool straightShot = true;
   for (Wall* wall : walls) {
