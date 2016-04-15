@@ -69,7 +69,11 @@ mat getCentroids(mat coords, int num) {
     return centroids;
 }
 
-
+struct SingularMatrixException : public exception {
+  const char* what () const throw () {
+    return "Cannot invert a singular matrix";
+  }
+};
 
 vec getLineParams(vec p1, vec p2) {
   mat line1 = join_horiz(p1, p2).t();
