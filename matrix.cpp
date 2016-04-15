@@ -85,10 +85,6 @@ bool liesBetween(vec linePoint1, vec linePoint2, vec point) {
     x2 = linePoint2[1];
     xPoint = point[1];
   }
-  cout << " x1 " << x1 << endl;
-  cout << " x2 "  << x2 << endl;
-  cout << " xPoint " << xPoint << endl;
-  cout << " x1 < xPoint " << (x1 < xPoint) << endl;
   return (x1 + e < xPoint && xPoint + e < x2)
       || (x1 > xPoint + e && xPoint > x2 + e);
 }
