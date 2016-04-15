@@ -126,8 +126,6 @@ mat getIntercept(vec startpoint1, vec endpoint1,
 
 bool intersects(vec startpoint1, vec endpoint1, 
                 vec startpoint2, vec endpoint2) {
-  //vec lineParams1 = getLineParams(startpoint1, endpoint1);
-  //vec lineParams2 = getLineParams(startpoint2, endpoint2);
   vec intercept;
   try {
     intercept = getIntercept(startpoint1, endpoint1, startpoint2, endpoint2);
@@ -148,19 +146,24 @@ Node graphBetween(Node here, Node there, vector<wall_nodes> walls) {
   bool straightShot = true;
   for (wall_nodes wall : walls) {
     if (intersects(here.coordinate, there.coordinate, wall)) {
-        cout << "here " << here.coordinate[0] << endl;
-        cout << "here " << here.coordinate[1] << endl;
-        cout << "there " << there.coordinate[0] << endl;
-        cout << "there " << there.coordinate[1] << endl;
-        cout << "wall1 " << wall.point1.coordinate[0] << endl;
-        cout << "wall1 " << wall.point1.coordinate[1] << endl;
-        cout << "wall2 " << wall.point2.coordinate[0] << endl;
-        cout << "wall2 " << wall.point2.coordinate[1] << endl;
+//        cout << "here " << here.coordinate[0] << endl;
+//        cout << "here " << here.coordinate[1] << endl;
+//        cout << "there " << there.coordinate[0] << endl;
+//        cout << "there " << there.coordinate[1] << endl;
+//        cout << "wall1 " << wall.point1.coordinate[0] << endl;
+//        cout << "wall1 " << wall.point1.coordinate[1] << endl;
+//        cout << "wall2 " << wall.point2.coordinate[0] << endl;
+//        cout << "wall2 " << wall.point2.coordinate[1] << endl;
       straightShot = false;
-      Node wall1 = graphBetween(wall.point1, there, walls);
-      Node wall2 =graphBetween(wall.point2, there, walls);
-      here = graphBetween(here, wall1, walls);
-      return graphBetween(here, wall2, walls);
+      if (inBounds(wall1)) {
+          Node wall1 = graphBetween(wall.point1, there, walls);
+          here = graphBetween(here, wall1, walls);
+      }
+      if (inBounds(wall2)) {
+          Node wall2 =graphBetween(wall.point2, there, walls);
+          here = graphBetween(here, wall2, walls);
+      }
+      return here;
     }
   }
   if (straightShot) {
