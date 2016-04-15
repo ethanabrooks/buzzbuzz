@@ -80,9 +80,6 @@ vec getLineParams(vec p1, vec p2) {
   mat x = line1.col(0);
   mat y = line1.col(1);
   mat augX = join_horiz(x, ones(x.size()));
-  if (det(augX) == 0) {
-    throw SingularMatrixException();
-  }
   return solve(augX, y);
 }
 
