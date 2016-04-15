@@ -32,6 +32,15 @@ vec glmToArma(glm::vec2 v) {
     return vec({v.x, v.y});
 }
 
+glm::vec2 armaToGlm(vec v) {
+    return glm::vec2(v[0], v[1]);
+}
+
+glm::vec2 nodeToGlm(Node n) {
+    return armaToGlm(n.coordinate);
+}
+
+
 mat getCoords(QVector<QVector<int> >* board,
               QList<Light*> lights = QList<Light*>()) {
     vector <double> coords;
@@ -143,15 +152,13 @@ Node graphBetween(Node here, Node there, QList<Wall*> walls) {
   bool straightShot = true;
   for (Wall* wall : walls) {
     vec wallStart = glmToArma(wall->point1), wallEnd = glmToArma(wall->point2);
-    if (intersects(here.coordinate, there.coordinate, wallStart, wallEnd)) {
-//        cout << "here " << here.coordinate[0] << endl;
-//        cout << "here " << here.coordinate[1] << endl;
-//        cout << "there " << there.coordinate[0] << endl;
-//        cout << "there " << there.coordinate[1] << endl;
-//        cout << "wall1 " << wall.point1.coordinate[0] << endl;
-//        cout << "wall1 " << wall.point1.coordinate[1] << endl;
-//        cout << "wall2 " << wall.point2.coordinate[0] << endl;
-//        cout << "wall2 " << wall.point2.coordinate[1] << endl;
+
+    glm:: vec2 glmHere = nodeToGlm(here), glmThere = nodeToGlm(there);
+    if (wall->isInvalidMove(glmHere, glmThere)
+            && glmHere != wall->point1
+            && glmHere != wall->point2
+            && glmThere != wall->point1
+            && glmThere != wall->point2) {
       straightShot = false;
 //      if (inBounds(wall1)) {
           Node wall1 = graphBetween(wallStart, there, walls);
