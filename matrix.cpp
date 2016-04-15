@@ -1,5 +1,6 @@
 #include "light.h"
 #include "matrix.h"
+#include "wall.h"
 #include <armadillo>
 #include <set>
 #include <QVector>
@@ -138,10 +139,11 @@ bool intersects(vec startpoint, vec endpoint, wall_nodes wall) {
       wall.point1.coordinate, wall.point2.coordinate);
 }
 
-Node graphBetween(Node here, Node there, vector<wall_nodes> walls) {
+Node graphBetween(Node here, Node there, QList<Wall*> walls) {
   bool straightShot = true;
-  for (wall_nodes wall : walls) {
-    if (intersects(here.coordinate, there.coordinate, wall)) {
+  for (Wall* wall : walls) {
+    vec wallStart = glmToArma(wall->point1), wallEnd = glmToArma(wall->point2);
+    if (intersects(here.coordinate, there.coordinate, wallStart, wallEnd)) {
 //        cout << "here " << here.coordinate[0] << endl;
 //        cout << "here " << here.coordinate[1] << endl;
 //        cout << "there " << there.coordinate[0] << endl;
@@ -151,14 +153,14 @@ Node graphBetween(Node here, Node there, vector<wall_nodes> walls) {
 //        cout << "wall2 " << wall.point2.coordinate[0] << endl;
 //        cout << "wall2 " << wall.point2.coordinate[1] << endl;
       straightShot = false;
-      if (inBounds(wall1)) {
-          Node wall1 = graphBetween(wall.point1, there, walls);
+//      if (inBounds(wall1)) {
+          Node wall1 = graphBetween(wallStart, there, walls);
           here = graphBetween(here, wall1, walls);
-      }
-      if (inBounds(wall2)) {
-          Node wall2 =graphBetween(wall.point2, there, walls);
+//      }
+//      if (inBounds(wall2)) {
+          Node wall2 =graphBetween(wallEnd, there, walls);
           here = graphBetween(here, wall2, walls);
-      }
+//      }
       return here;
     }
   }

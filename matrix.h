@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QDebug>
 #include "light.h"
+#include "wall.h"
 
 using namespace std;
 using namespace arma;
@@ -44,5 +45,5 @@ mat getCoords(QVector<QVector<int> >* board, QList<Light*> lights);
 mat getCentroids(mat coords, int num);
 vector<vec> getDistVecs(mat centroids, QList<Light*> lights, bool replace_centroids);
 vec glmToArma(glm::vec2);
-Node graphBetween(Node here, Node there, vector<wall_nodes> walls);
+Node graphBetween(Node here, Node there, QList<Wall*> walls);
 #endif

@@ -13,7 +13,6 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination);
 int numLights = 4;
 mat centroids;
 vector <vec> velocities;
-vector <wall_nodes> wallNodesList;
 vec FROG_POS = {250, 250};
 
 
@@ -26,9 +25,9 @@ double getDistance(Node vertex1, Node vertex2) {
     return distance;
 }
 
-double getTotalDistance(vec coordinate1, vec coordinate2) {
+double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
     Node vertex1(coordinate1), vertex2(coordinate2);
-    vertex1 = graphBetween(vertex1, vertex2, wallNodesList);
+    vertex1 = graphBetween(vertex1, vertex2, walls);
     double totalDistance = 0;
     vector<Node> path = runDijkstra(vertex1, vertex2);
     Node prev = vertex1;
@@ -108,7 +107,8 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
 
 vector<vec> getDistVecs(mat centroids,
                         QList<Light*> lights,
-                        bool replace_centroids=false) {
+                        bool replace_centroids,
+                        QList<Wall*> walls) {
     vector<vec> deltas;
     vector<vec> available;
     centroids.each_col([&](vec& centroidPos){
@@ -123,13 +123,12 @@ vector<vec> getDistVecs(mat centroids,
         vector<vec>::iterator closestCentroid =
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
-                double ton1 = getTotalDistance(lightPos, c1);
-                double ton2 = getTotalDistance(lightPos, c2);
-                bool res = ton1 < ton2;
-                return res;
+                double toC1 = getTotalDistance(lightPos, c1, walls);
+                double toC2 = getTotalDistance(lightPos, c2, walls);
+                return toC1 < toC2;
               });
         Node lightNode(lightPos), centroidNode(*closestCentroid);
-        lightNode = graphBetween(lightNode, centroidNode, wallNodesList);
+        lightNode = graphBetween(lightNode, centroidNode, walls);
         vector<Node> path = runDijkstra(lightNode, centroidNode);
         deltas.push_back(normalise(path[1].coordinate - lightPos));
         if (!replace_centroids) {
@@ -213,16 +212,6 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
 
         velocities.push_back(vec({0, 0}));
     }
-
-    for (Wall* wall : this->walls) {
-        double lightRadius = this->lights[0]->radius;
-        vec p1 = glmToArma(wall->point1);
-        vec p2 = glmToArma(wall->point2);
-        wall_nodes nodes = {.point1 = getWallNode(p1, p2, lightRadius),
-                            .point2 = getWallNode(p2, p1, lightRadius)};
-
-        wallNodesList.push_back(nodes);
-    }
 }
 
 /*
@@ -249,11 +238,13 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
             centroids = coords; // go to remaining mosquitos
         }
         deltas = getDistVecs(centroids, this->lights,
-                                           true); // more than one light per centroid
+                                           true, // more than one light per centroid
+                                           this->walls);
     } else {
         centroids = getCentroids(coords, this->lights.size());
         deltas = getDistVecs(centroids, this->lights,
-                                           false); // one light per centroid
+                                        false, // one light per centroid
+                                        this->walls);
     }
     for (int i = 0; i < this->lights.length(); i++) {
 
