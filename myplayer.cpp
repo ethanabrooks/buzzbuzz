@@ -14,7 +14,12 @@ int numLights = 4;
 mat centroids;
 vector <vec> velocities;
 vec FROG_POS = {250, 250};
+vector<vec> POSITIONS = {vec({70, 70}),
+                                    vec({70, 430}),
+                                    vec({430, 70}),
+                                    vec({430, 430})};
 
+float SMOOTHING = 20; //3000;
 
 double getDistance(Node vertex1, Node vertex2) {
     double xdiff = vertex1.coordinate[0] - vertex2.coordinate[0];
@@ -156,7 +161,7 @@ glm::vec2 MyPlayer::initializeFrog(QVector<QVector<int> >* board) {
      * This places the frog in the center.
      * But you can place it anywhere you like!
      */
-    return glm::vec2({250.0f, 250.0f});
+    return armaToGlm(FROG_POS);
 }
 
 
@@ -198,10 +203,7 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
       QColor(255, 255, 0),
       QColor(255, 0, 255)
     };
-    vector<vec> positions = {vec({70, 70}),
-                                    vec({70, 430}),
-                                    vec({430, 70}),
-                                    vec({430, 430})};
+    vector<vec> positions = POSITIONS;
     for (int i = 0; i < this->lights.size(); i++) {
         Light* light = this->lights.at(i);
         light->trailColor = colors[i];
@@ -218,14 +220,6 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
     QList<Wall*> tWalls;
     for (Wall* wall : this->walls) {
         Wall t1 = getTWall(wall->point1, wall->point2);
-        cout << "point1 " << wall->point1[0] << endl;
-        cout << "point1 " << wall->point1[1] << endl;
-        cout << "point2 " << wall->point2[0] << endl;
-        cout << "point2 " << wall->point2[1] << endl;
-        cout << "t1 point1 " << t1.point1[0] << endl;
-        cout << "t1 point1 " << t1.point1[1] << endl;
-        cout << "t1 point2 " << t1.point2[0] << endl;
-        cout << "t1 point2 " << t1.point2[1] << endl;
         Wall t2 = getTWall(wall->point2, wall->point1);
         tWalls.append(&t1);
         tWalls.append(&t2);
@@ -248,8 +242,7 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     int numLights = this->lights.size();
     int numMosqsToCatch = size(coords)[1];
 
-    float smoothing = 20; //3000;
-    float acceleration = 1 / (smoothing * cbrt(numMosqsToCatch) + 1);
+    float acceleration = 1 / (SMOOTHING * cbrt(numMosqsToCatch) + 1);
     if (numMosqsToCatch < numLights) {
         if (numMosqsToCatch == 0) {
             centroids = FROG_POS; // go to the frog

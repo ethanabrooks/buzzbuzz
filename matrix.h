@@ -47,4 +47,5 @@ vector<vec> getDistVecs(mat centroids, QList<Light*> lights, bool replace_centro
 vec glmToArma(glm::vec2);
 Node graphBetween(Node here, Node there, QList<Wall*> walls);
 Wall getTWall(glm::vec2 w1, glm::vec2 w2);
+glm::vec2 armaToGlm(vec v);
 #endif

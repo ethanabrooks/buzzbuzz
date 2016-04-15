@@ -12,12 +12,6 @@ using namespace arma;
 int WALL_OFFSET = 20;
 double BOARD_SIZE = 500;
 
-struct SingularMatrixException : public exception {
-  const char* what () const throw () {
-    return "Cannot invert a singular matrix";
-  }
-};
-
 bool withinLight(glm::vec2 objPos,
                  QList<Light*> lights) {
     for (Light* light : lights) {
@@ -101,62 +95,6 @@ bool liesBetween(vec linePoint1, vec linePoint2, vec point) {
   return (x1 + e < xPoint && xPoint + e < x2)
       || (x1 > xPoint + e && xPoint > x2 + e);
 }
-
-vec getVerticalIntercept(double x, mat params) {
-    return vec({x, dot(params, vec({x, 1}))});
-}
-
-mat getIntercept(vec startpoint1, vec endpoint1, 
-                vec startpoint2, vec endpoint2) {
-
-  double x1 = startpoint1[0];
-  double x2 = startpoint2[0];
-
-  bool line1isVertical = x1 == endpoint1[0];
-  bool line2isVertical = x2 == endpoint2[0];
-
-  if (line1isVertical) {
-    return getVerticalIntercept(x1, getLineParams(startpoint2, endpoint2));
-  } else if (line2isVertical) {
-    return getVerticalIntercept(x2, getLineParams(startpoint1, endpoint1));
-  } else {
-    mat params = join_horiz( 
-        getLineParams(startpoint1, endpoint1), 
-        getLineParams(startpoint2, endpoint2)
-        ).t();
-    vec xParams = params.col(0);
-    mat augXParams = join_horiz(-xParams, ones(xParams.size()));
-    if (det(augXParams) == 0) {
-      throw SingularMatrixException();
-    }
-    return solve(augXParams, params.col(1));
-  }
-}
-
-bool intersects(vec startpoint1, vec endpoint1, 
-                vec startpoint2, vec endpoint2) {
-  vec intercept;
-  try {
-    intercept = getIntercept(startpoint1, endpoint1, startpoint2, endpoint2);
-  } catch (SingularMatrixException) {
-    return false;
-  }
-  bool l1 = liesBetween(startpoint1, endpoint1, intercept);
-  bool l2 = liesBetween(startpoint2, endpoint2, intercept);
-  return l1 && l2;
-}
-
-bool intersects(vec startpoint, vec endpoint, wall_nodes wall) {
-  return intersects(startpoint, endpoint,
-      wall.point1.coordinate, wall.point2.coordinate);
-}
-
-bool inBounds(Node n) {
-    return liesBetween(vec{0, 0},
-                       vec{BOARD_SIZE, BOARD_SIZE},
-                       n.coordinate);
-}
-
 Node graphBetween(Node here, Node there, QList<Wall*> walls) {
   bool straightShot = true;
   for (Wall* wall : walls) {
@@ -183,36 +121,6 @@ Node graphBetween(Node here, Node there, QList<Wall*> walls) {
   if (straightShot) {
     return here.withNeighbor(there);
   }
-}
-
-vec extend(vec near, vec far, double by) {
-  vec offset = normalise(near - far) * by;
-  return near + offset;
-}
-
-Node getWallNode(vec near, vec far, double lightRadius) {
-  vec position = extend(near, far, lightRadius);
-  vector<double> bounds = {0, 500};
-  vector<pair<vec, vec>> edges;
-  for (float k = 0; k < bounds.size(); k+=.5) {
-      int a = k;
-      int b = int (k + .5) % bounds.size();
-      int c = int (k + 1) % bounds.size();
-      vec start({bounds[a], bounds[b]});
-      vec end({bounds[b], bounds[c]});
-      edges.push_back(pair<vec, vec>(
-            extend(start, end, 1),
-            extend(end, start, 1)
-            ));
-  }
-  for (pair<vec, vec> edge :  edges) {
-//    cout << "first" << endl << edge.first <<
-//      endl << "second" << endl << edge.second << endl;
-      if (intersects(far, position, edge.first, edge.second)) {
-          position = getIntercept(far, position, edge.first, edge.second);
-      }
-  }
-  return Node(position);
 }
 
 Wall getTWall(glm::vec2 w1, glm::vec2 w2) {
