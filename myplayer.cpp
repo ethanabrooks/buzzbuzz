@@ -14,6 +14,7 @@ int numLights = 4;
 mat centroids;
 vector <vec> velocities;
 vector <wall_nodes> wallNodesList;
+vec FROG_POS = {250, 250};
 
 
 double getDistance(Node vertex1, Node vertex2) {
@@ -198,10 +199,10 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
       QColor(255, 255, 0),
       QColor(255, 0, 255)
     };
-    vector<vec> positions = {vec({75, 75}),
-                                    vec({75, 425}),
-                                    vec({425, 75}),
-                                    vec({425, 425})};
+    vector<vec> positions = {vec({70, 70}),
+                                    vec({70, 430}),
+                                    vec({430, 70}),
+                                    vec({430, 430})};
     for (int i = 0; i < this->lights.size(); i++) {
         Light* light = this->lights.at(i);
         light->trailColor = colors[i];
@@ -218,7 +219,8 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
         vec p1 = glmToArma(wall->point1);
         vec p2 = glmToArma(wall->point2);
         wall_nodes nodes = {.point1 = getWallNode(p1, p2, lightRadius),
-                            .point2 = getWallNode(p2, p1, lightRadius) };
+                            .point2 = getWallNode(p2, p1, lightRadius)};
+
         wallNodesList.push_back(nodes);
     }
 }
@@ -238,11 +240,11 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     int numLights = this->lights.size();
     int numMosqsToCatch = size(coords)[1];
 
-    float smoothing = 3000; //1500;
+    float smoothing = 50; //3000;
     float acceleration = 1 / (smoothing * cbrt(numMosqsToCatch) + 1);
     if (numMosqsToCatch < numLights) {
         if (numMosqsToCatch == 0) {
-            centroids = vec({250, 250}); // go to the frog
+            centroids = FROG_POS; // go to the frog
         } else {
             centroids = coords; // go to remaining mosquitos
         }

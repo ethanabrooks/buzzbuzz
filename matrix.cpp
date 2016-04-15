@@ -4,7 +4,6 @@
 #include <set>
 #include <QVector>
 #include <QDebug>
-#include <mutex>
 
 using namespace std;
 using namespace arma;
@@ -88,22 +87,43 @@ bool liesBetween(vec linePoint1, vec linePoint2, vec point) {
   double x1 = linePoint1[0];
   double x2 = linePoint2[0];
   double xPoint = point[0];
-  bool res = (x1 < xPoint && xPoint < x2) || (x1 > xPoint && xPoint > x2);
-  return res;
+  return (x1 < xPoint && xPoint < x2) || (x1 > xPoint && xPoint > x2);
 }
 
-bool intersects(vec startpoint1, vec endpoint1,
-                 vec startpoint2, vec endpoint2) {
-    set<Node> s;
-    for (vec v : {startpoint1, startpoint2, endpoint1, endpoint2}) {
-        s.insert(Node(v));
+vec getVerticalIntercept(double x, mat params) {
+    return vec({x, dot(params, vec({x, 1}))});
+}
+
+bool intersects(vec startpoint1, vec endpoint1, vec startpoint2, vec endpoint2) {
+  vec lineParams1 = getLineParams(startpoint1, endpoint1);
+  vec lineParams2 = getLineParams(startpoint2, endpoint2);
+
+  vec intercept;
+
+  double x1 = startpoint1[0];
+  double x2 = startpoint2[0];
+
+  bool line1isVertical = x1 == endpoint1[0];
+  bool line2isVertical = x2 == endpoint2[0];
+
+  if (line1isVertical && line2isVertical) {
+    return false; // the lines are parallel; they don't intersect;
+  }
+  if (line1isVertical) {
+    intercept = getVerticalIntercept(x1, lineParams2);
+  } else if (line2isVertical) {
+    intercept = getVerticalIntercept(x2, lineParams1);
+  } else {
+    mat params = join_horiz(lineParams1, lineParams2).t();
+    vec xParams = params.col(0);
+    mat augXParams = join_horiz(-xParams, ones(xParams.size()));
+    if (det(augXParams) == 0) { // this means that the lines are parallel
+      return false;
     }
-    if (s.size() < 4) {
-        return false;
-    }
-    vec intercept = getIntercept(startpoint1, endpoint1, startpoint2, endpoint2);
-    return liesBetween(startpoint1, endpoint1, intercept)
-    && liesBetween(startpoint2, endpoint2, intercept);
+    intercept = solve(augXParams, params.col(1));
+  }
+  return liesBetween(startpoint1, endpoint1, intercept)
+      && liesBetween(startpoint2, endpoint2, intercept);
 }
 
 bool intersects(vec startpoint, vec endpoint, wall_nodes wall) {
@@ -115,17 +135,11 @@ Node graphBetween(Node here, Node there, vector<wall_nodes> walls) {
   bool straightShot = true;
   for (wall_nodes wall : walls) {
     if (intersects(here.coordinate, there.coordinate, wall)) {
-      qDebug() << "num neighbors to start: " << here.neighbors.size() << endl;
       straightShot = false;
       Node wall1 = graphBetween(wall.point1, there, walls);
-      qDebug() << "num neighbors created in wall1: " << wall1.neighbors.size() << endl;
       Node wall2 =graphBetween(wall.point2, there, walls);
-      qDebug() << "num neighbors created in wall2: " << wall2.neighbors.size() << endl;
       here = graphBetween(here, wall1, walls);
-      qDebug() << "num neighbors created in 'here': " << here.neighbors.size() << endl;
-      Node here2 = graphBetween(here, wall2, walls);
-      qDebug() << "num neighbors created in 'here2': " << here2.neighbors.size() << endl;
-      return here2;
+      return graphBetween(here, wall2, walls);
     }
   }
   if (straightShot) {
@@ -136,6 +150,23 @@ Node graphBetween(Node here, Node there, vector<wall_nodes> walls) {
 Node getWallNode(vec near, vec far, double lightRadius) {
   vec offset = normalise(near - far);
   vec position = near + offset;
+  vector<double> bounds = {0, 500};
+  vector<vec> corners;
+  for (double xCoord: bounds) {
+      for (double yCoord: bounds) {
+          corners.push_back(vec({xCoord, yCoord}));
+      }
+  }
+  vector<Pair<vec, vec>> edges;
+  for (int i = 0; i < corners.size() + 1; i++) {
+      int j = (i + 1) % corners.size();
+      edges.push_back(Pair<corners[i], corners[j]>);
+  }
+  for (Pair<vec, vec> edge :  edges) {
+      if (intersects(near, offset, edge.first, edge.second)) {
+          position = getIntercept(near, offset, edge.first, edge.second);
+      }
+  }
   return Node(position);
 }
 
