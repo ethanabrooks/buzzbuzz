@@ -212,6 +212,25 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
 
         velocities.push_back(vec({0, 0}));
     }
+
+
+
+    QList<Wall*> tWalls;
+    for (Wall* wall : this->walls) {
+        Wall t1 = getTWall(wall->point1, wall->point2);
+        cout << "point1 " << wall->point1[0] << endl;
+        cout << "point1 " << wall->point1[1] << endl;
+        cout << "point2 " << wall->point2[0] << endl;
+        cout << "point2 " << wall->point2[1] << endl;
+        cout << "t1 point1 " << t1.point1[0] << endl;
+        cout << "t1 point1 " << t1.point1[1] << endl;
+        cout << "t1 point2 " << t1.point2[0] << endl;
+        cout << "t1 point2 " << t1.point2[1] << endl;
+        Wall t2 = getTWall(wall->point2, wall->point1);
+        tWalls.append(&t1);
+        tWalls.append(&t2);
+    }
+    this->walls += tWalls;
 }
 
 /*
@@ -229,7 +248,7 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     int numLights = this->lights.size();
     int numMosqsToCatch = size(coords)[1];
 
-    float smoothing = 50; //3000;
+    float smoothing = 20; //3000;
     float acceleration = 1 / (smoothing * cbrt(numMosqsToCatch) + 1);
     if (numMosqsToCatch < numLights) {
         if (numMosqsToCatch == 0) {

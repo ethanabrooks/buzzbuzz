@@ -46,4 +46,5 @@ mat getCentroids(mat coords, int num);
 vector<vec> getDistVecs(mat centroids, QList<Light*> lights, bool replace_centroids);
 vec glmToArma(glm::vec2);
 Node graphBetween(Node here, Node there, QList<Wall*> walls);
+Wall getTWall(glm::vec2 w1, glm::vec2 w2);
 #endif

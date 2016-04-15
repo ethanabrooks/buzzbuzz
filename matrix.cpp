@@ -9,6 +9,9 @@
 using namespace std;
 using namespace arma;
 
+int WALL_OFFSET = 20;
+double BOARD_SIZE = 500;
+
 struct SingularMatrixException : public exception {
   const char* what () const throw () {
     return "Cannot invert a singular matrix";
@@ -148,6 +151,12 @@ bool intersects(vec startpoint, vec endpoint, wall_nodes wall) {
       wall.point1.coordinate, wall.point2.coordinate);
 }
 
+bool inBounds(Node n) {
+    return liesBetween(vec{0, 0},
+                       vec{BOARD_SIZE, BOARD_SIZE},
+                       n.coordinate);
+}
+
 Node graphBetween(Node here, Node there, QList<Wall*> walls) {
   bool straightShot = true;
   for (Wall* wall : walls) {
@@ -160,14 +169,14 @@ Node graphBetween(Node here, Node there, QList<Wall*> walls) {
             && glmThere != wall->point1
             && glmThere != wall->point2) {
       straightShot = false;
-//      if (inBounds(wall1)) {
+      if (inBounds(wallStart)) {
           Node wall1 = graphBetween(wallStart, there, walls);
           here = graphBetween(here, wall1, walls);
-//      }
-//      if (inBounds(wall2)) {
+      }
+      if (inBounds(wallEnd)) {
           Node wall2 =graphBetween(wallEnd, there, walls);
           here = graphBetween(here, wall2, walls);
-//      }
+      }
       return here;
     }
   }
@@ -204,6 +213,14 @@ Node getWallNode(vec near, vec far, double lightRadius) {
       }
   }
   return Node(position);
+}
+
+Wall getTWall(glm::vec2 w1, glm::vec2 w2) {
+    vec params = getLineParams(glmToArma(w1), glmToArma(w2));
+    double a = getLineParams(glmToArma(w1), glmToArma(w2))[0];
+    glm::vec2 offset = armaToGlm(WALL_OFFSET *
+                                 normalise(vec({a, -1})));
+    return Wall(w1 + offset, w1 - offset);
 }
 
 ostream& operator<<(ostream& os, const Node& node)
