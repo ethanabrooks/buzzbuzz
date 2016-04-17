@@ -140,6 +140,7 @@ Node graphBetween(Node here, Node there, QList<Wall*> walls) {
         nodes.push_back(extend(wall->point1, wall->point2));
         nodes.push_back(extend(wall->point2, wall->point1));
     }
+    cout << "Num nodes " << nodes.size() << endl;
     for (int i = 0; i < nodes.size(); i++) {
         for (int j = 0; j < nodes.size(); j++) {
 //            cout << "here" <<  endl << nodes[i] << endl;
