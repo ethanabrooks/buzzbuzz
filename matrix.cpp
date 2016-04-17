@@ -3,6 +3,7 @@
 #include "wall.h"
 #include <armadillo>
 #include <set>
+#include <algorithm>
 #include <QVector>
 #include <QDebug>
 
@@ -10,11 +11,18 @@ using namespace std;
 using namespace arma;
 
 int WALL_OFFSET = 20;
+int WALL_INSET = 10;
 double BOARD_SIZE = 500;
 
 bool withinLight(glm::vec2 objPos,
-                 QList<Light*> lights) {
+                 QList<Light*> lights,
+                 QList<Wall*> walls) {
     for (Light* light : lights) {
+        for (Wall* wall : walls) {
+            if (wall->isInvalidMove(objPos, light->getPosition())) {
+                return false;
+            }
+        }
         glm::vec2 lightPos = light->getPosition();
         double distance =  sqrt(pow(objPos.x - lightPos.x, 2)
                               + pow(objPos.y - lightPos.y, 2));
@@ -39,13 +47,14 @@ glm::vec2 nodeToGlm(Node n) {
 
 
 mat getCoords(QVector<QVector<int> >* board,
-              QList<Light*> lights = QList<Light*>()) {
+              QList<Light*> lights,
+              QList<Wall*> walls) {
     vector <double> coords;
     int numMosqs = 0;
     for (int i = 0; i < board->size(); i++) {
         for (int j = 0; j < board->at(i).size(); j++) {
             if ((*board)[i][j] == 1) {
-                if (!withinLight(glm::vec2({i, j}), lights)) {
+                if (!withinLight(glm::vec2({i, j}), lights, walls)) {
                     numMosqs++;
                     for (auto k: {i, j}) {
                         coords.push_back((float) k);
@@ -106,7 +115,7 @@ bool inBounds(Node n) {
 Node graphBetween(Node here, Node there, QList<Wall*> walls) {
   bool straightShot = true;
   for (Wall* wall : walls) {
-    vec wallStart = glmToArma(wall->point1), wallEnd = glmToArma(wall->point2);
+    Node wallStart(glmToArma(wall->point1)), wallEnd(glmToArma(wall->point2));
 
     glm:: vec2 glmHere = nodeToGlm(here), glmThere = nodeToGlm(there);
     if (wall->isInvalidMove(glmHere, glmThere)
@@ -115,7 +124,10 @@ Node graphBetween(Node here, Node there, QList<Wall*> walls) {
             && glmThere != wall->point1
             && glmThere != wall->point2) {
       straightShot = false;
-      if (inBounds(wallStart)) {
+      if (inBounds(wallStart) && !here.hasNeighbor(wallStart)) {
+          cout << glmHere[0] << endl;
+          cout << glmHere[1] << endl;
+          if (!there.hasNeighbor(wallSt))
           Node wall1 = graphBetween(wallStart, there, walls);
           here = graphBetween(here, wall1, walls);
       }
@@ -127,16 +139,21 @@ Node graphBetween(Node here, Node there, QList<Wall*> walls) {
     }
   }
   if (straightShot) {
+    there = there.withNeighbor(here);
     return here.withNeighbor(there);
   }
 }
 
-Wall getTWall(glm::vec2 w1, glm::vec2 w2) {
-    vec params = getLineParams(glmToArma(w1), glmToArma(w2));
-    double a = getLineParams(glmToArma(w1), glmToArma(w2))[0];
-    glm::vec2 offset = armaToGlm(WALL_OFFSET *
-                                 normalise(vec({a, -1})));
-    return Wall(w1 + offset, w1 - offset);
+glm::vec2 setLength(glm::vec2 v, float length) {
+    return glm::normalize(v) * length;
+}
+
+Wall getTWall(glm::vec2 near, glm::vec2 far) {
+    vec params = getLineParams(glmToArma(near), glmToArma(far));
+    double a = getLineParams(glmToArma(near), glmToArma(far))[0];
+    glm::vec2 offset = setLength(glm::vec2(a, -1), WALL_OFFSET);
+    glm::vec2 inset = setLength(far - near, WALL_INSET);
+    return Wall(near + offset, near - offset);
 }
 
 ostream& operator<<(ostream& os, const Node& node)

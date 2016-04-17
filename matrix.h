@@ -33,15 +33,14 @@ class Node {
             vec b = node.coordinate;
             return a[0] == b[0]? a[1] < b[1] : a[0] < b[0];
           }
+
+          bool hasNeighbor(Node n) {
+              return find(neighbors.begin(), neighbors.end(), n) != neighbors.end();
+          }
 };
 
-typedef struct {
-  Node point1;
-  Node point2;
-} wall_nodes;
-
 Node getWallNode(vec near, vec far, double lightRadius);
-mat getCoords(QVector<QVector<int> >* board, QList<Light*> lights);
+mat getCoords(QVector<QVector<int> >* board, QList<Light*> lights, QList<Wall*> walls);
 mat getCentroids(mat coords, int num);
 vector<vec> getDistVecs(mat centroids, QList<Light*> lights, bool replace_centroids);
 vec glmToArma(glm::vec2);

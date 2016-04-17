@@ -2,6 +2,8 @@
 
 #include <QApplication>
 #include <QSurfaceFormat>
+#include <execinfo.h>
+#include <cxxabi.h>
 
 int main(int argc, char *argv[])
 {
