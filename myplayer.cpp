@@ -36,16 +36,17 @@ double getDistance(Node vertex1, Node vertex2) {
 Node nextDestination(vector<Node> path) {
     switch (path.size()) {
         case 0: throw "path must not be empty";
-        case 1: return path[0];
-        default: return path[1];
+        case 1:
+            return path[0];
+        default:
+            return path[1];
     }
 }
 
 double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
-    Node vertex1(coordinate1), vertex2(coordinate2);
-    vertex1 = graphBetween(vertex1, vertex2, walls);
+    Node vertex1 = graphBetween(coordinate1, coordinate2, walls);
     double totalDistance = 0;
-    vector<Node> path = runDijkstra(vertex1, vertex2);
+    vector<Node> path = runDijkstra(vertex1, Node(coordinate2));
     Node prev = vertex1;
     Node next = nextDestination(path);
     for(int i = 2; i < path.size(); i++) {
@@ -145,18 +146,23 @@ vector<vec> getDistVecs(mat centroids,
                 double toC2 = getTotalDistance(lightPos, c2, walls);
                 return toC1 < toC2;
               });
-        Node lightNode(lightPos), centroidNode(*closestCentroid);
-        lightNode = graphBetween(lightNode, centroidNode, walls);
-        vector<Node> path = runDijkstra(lightNode, centroidNode);
+        Node lightNode = graphBetween(lightPos, *closestCentroid, walls);
+        vector<Node> path = runDijkstra(lightNode, Node(*closestCentroid));
+        cout << "lightNode" << endl;
+        cout << lightNode << endl;
+        cout << endl << "path" << endl;
+        for (Node n : path) {
+            cout << n << endl;
+        }
         deltas.push_back(normalise(nextDestination(path).coordinate - lightPos));
 
-//            cout << lightNode << endl;
-//        cout << "Light pos " << i << " " << lightPos[0] << endl;
-//        cout << "Light pos " << i << " " << lightPos[1] << endl;
-//        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
-//        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
-//        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
-//        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
+            cout << endl << lightNode;
+        cout << "Light pos " << i << " " << lightPos[0] << endl;
+        cout << "Light pos " << i << " " << lightPos[1] << endl;
+        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
+        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
+        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
+        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
@@ -236,15 +242,15 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
         velocities.push_back(vec({0, 0}));
     }
 
-    for (Wall* wall : this->walls) {
-        Wall t1 = getTWall(wall->point1, wall->point2);
-        Wall t2 = getTWall(wall->point2, wall->point1);
-        tWalls.push_back(t1);
-        tWalls.push_back(t2);
-    }
-    for (int i = 0; i < tWalls.size() ; i++) {
-        this->walls.push_back(&tWalls[i]);
-    }
+//    for (Wall* wall : this->walls) {
+//        Wall t1 = getTWall(wall->point1, wall->point2);
+//        Wall t2 = getTWall(wall->point2, wall->point1);
+//        tWalls.push_back(t1);
+//        tWalls.push_back(t2);
+//    }
+//    for (int i = 0; i < tWalls.size() ; i++) {
+//        this->walls.push_back(&tWalls[i]);
+//    }
     for (Wall* wall : this->walls) {
         cout << "p1 " << wall->point1[0] << endl;
         cout << "p1 " << wall->point1[1] << endl;
@@ -304,6 +310,6 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
          * to the frog within 5000 steps.
          */
 
-    }
+//    }
 }
 
