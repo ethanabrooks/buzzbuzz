@@ -150,13 +150,13 @@ vector<vec> getDistVecs(mat centroids,
         vector<Node> path = runDijkstra(lightNode, centroidNode);
         deltas.push_back(normalise(nextDestination(path).coordinate - lightPos));
 
-            cout << lightNode << endl;
-        cout << "Light pos " << i << " " << lightPos[0] << endl;
-        cout << "Light pos " << i << " " << lightPos[1] << endl;
-        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
-        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
-        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
-        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
+//            cout << lightNode << endl;
+//        cout << "Light pos " << i << " " << lightPos[0] << endl;
+//        cout << "Light pos " << i << " " << lightPos[1] << endl;
+//        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
+//        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
+//        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
+//        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
@@ -244,6 +244,12 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
     }
     for (int i = 0; i < tWalls.size() ; i++) {
         this->walls.push_back(&tWalls[i]);
+    }
+    for (Wall* wall : this->walls) {
+        cout << "p1 " << wall->point1[0] << endl;
+        cout << "p1 " << wall->point1[1] << endl;
+        cout << "p2 " << wall->point2[0] << endl;
+        cout << "p2 " << wall->point2[1] << endl;
     }
 }
 

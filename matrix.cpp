@@ -10,9 +10,10 @@
 using namespace std;
 using namespace arma;
 
-int WALL_OFFSET = 20;
-int WALL_INSET = 10;
-double BOARD_SIZE = 500;
+float WALL_OFFSET = 5;
+float WALL_INSET = 10;
+float NODE_OFFSET = 20;
+float BOARD_SIZE = 500;
 
 ostream& operator<<(ostream& os, const Node& node)
 {
@@ -23,6 +24,9 @@ ostream& operator<<(ostream& os, const Node& node)
   return os;
 }
 
+glm::vec2 setLength(glm::vec2 v, float length) {
+    return glm::normalize(v) * length;
+}
 
 bool withinLight(glm::vec2 objPos,
                  QList<Light*> lights,
@@ -125,32 +129,40 @@ bool inBounds(Node n) {
                        n.coordinate);
 }
 
+Node extend(glm::vec2 near, glm::vec2 far) {
+    glm::vec2 offset = setLength(near - far, NODE_OFFSET);
+    return Node(near + offset);
+}
+
 Node graphBetween(Node here, Node there, QList<Wall*> walls) {
     vector<Node> nodes = {here, there};
     for (Wall* wall : walls) {
-        nodes.push_back(Node(wall->point1));
-        nodes.push_back(Node(wall->point2));
+        nodes.push_back(extend(wall->point1, wall->point2));
+        nodes.push_back(extend(wall->point2, wall->point1));
     }
     for (int i = 0; i < nodes.size(); i++) {
         for (int j = 0; j < nodes.size(); j++) {
+//            cout << "here" <<  endl << nodes[i] << endl;
+//            cout << "there" <<  endl << nodes[j] << endl;
             bool straightShot = true;
             for (Wall* wall : walls) {
-                if (wall->isInvalidMove(nodes[i].glm(), nodes[j].glm())) {
+                if (wall->isInvalidMove(nodes[i].glm(), nodes[j].glm())
+                        || !inBounds(nodes[i])
+                        || !inBounds(nodes[j])) {
                     straightShot = false;
+                    break;
                 }
             }
             if (straightShot) {
                 nodes[i].addNeighbor(nodes[j]);
             }
+//            cout << "connected? " << straightShot << endl;
         }
     }
     return nodes[0];
 }
 
 
-glm::vec2 setLength(glm::vec2 v, float length) {
-    return glm::normalize(v) * length;
-}
 
 Wall getTWall(glm::vec2 near, glm::vec2 far) {
     vec params = getLineParams(glmToArma(near), glmToArma(far));
