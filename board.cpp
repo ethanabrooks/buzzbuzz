@@ -18,7 +18,7 @@ Board::Board()
     this->player->walls = this->walls;
 
     this->currRound = 0;
-    this->maxRounds = 1000;
+    this->maxRounds = 5000;
     this->captureTarget = (int) this->numMosquitoes;// * 0.50f; // initially capture 100%
 }
 

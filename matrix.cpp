@@ -14,6 +14,16 @@ int WALL_OFFSET = 20;
 int WALL_INSET = 10;
 double BOARD_SIZE = 500;
 
+ostream& operator<<(ostream& os, const Node& node)
+{
+  os << node.coordinate[0] << ", " << node.coordinate[1] << endl;
+  for (Node neighbor : node.neighbors) {
+    os << "- " << neighbor << endl;
+  }
+  return os;
+}
+
+
 bool withinLight(glm::vec2 objPos,
                  QList<Light*> lights,
                  QList<Wall*> walls) {
@@ -45,6 +55,9 @@ glm::vec2 nodeToGlm(Node n) {
     return armaToGlm(n.coordinate);
 }
 
+glm::vec2 Node::glm() {
+    return nodeToGlm(*this);
+}
 
 mat getCoords(QVector<QVector<int> >* board,
               QList<Light*> lights,
@@ -113,36 +126,27 @@ bool inBounds(Node n) {
 }
 
 Node graphBetween(Node here, Node there, QList<Wall*> walls) {
-  bool straightShot = true;
-  for (Wall* wall : walls) {
-    Node wallStart(glmToArma(wall->point1)), wallEnd(glmToArma(wall->point2));
-
-    glm:: vec2 glmHere = nodeToGlm(here), glmThere = nodeToGlm(there);
-    if (wall->isInvalidMove(glmHere, glmThere)
-            && glmHere != wall->point1
-            && glmHere != wall->point2
-            && glmThere != wall->point1
-            && glmThere != wall->point2) {
-      straightShot = false;
-      if (inBounds(wallStart) && !here.hasNeighbor(wallStart)) {
-          cout << glmHere[0] << endl;
-          cout << glmHere[1] << endl;
-          if (!there.hasNeighbor(wallSt))
-          Node wall1 = graphBetween(wallStart, there, walls);
-          here = graphBetween(here, wall1, walls);
-      }
-      if (inBounds(wallEnd)) {
-          Node wall2 =graphBetween(wallEnd, there, walls);
-          here = graphBetween(here, wall2, walls);
-      }
-      return here;
+    vector<Node> nodes = {here, there};
+    for (Wall* wall : walls) {
+        nodes.push_back(Node(wall->point1));
+        nodes.push_back(Node(wall->point2));
     }
-  }
-  if (straightShot) {
-    there = there.withNeighbor(here);
-    return here.withNeighbor(there);
-  }
+    for (int i = 0; i < nodes.size(); i++) {
+        for (int j = 0; j < nodes.size(); j++) {
+            bool straightShot = true;
+            for (Wall* wall : walls) {
+                if (wall->isInvalidMove(nodes[i].glm(), nodes[j].glm())) {
+                    straightShot = false;
+                }
+            }
+            if (straightShot) {
+                nodes[i].addNeighbor(nodes[j]);
+            }
+        }
+    }
+    return nodes[0];
 }
+
 
 glm::vec2 setLength(glm::vec2 v, float length) {
     return glm::normalize(v) * length;
@@ -153,14 +157,6 @@ Wall getTWall(glm::vec2 near, glm::vec2 far) {
     double a = getLineParams(glmToArma(near), glmToArma(far))[0];
     glm::vec2 offset = setLength(glm::vec2(a, -1), WALL_OFFSET);
     glm::vec2 inset = setLength(far - near, WALL_INSET);
+    near = near + inset;
     return Wall(near + offset, near - offset);
-}
-
-ostream& operator<<(ostream& os, const Node& node)
-{
-  os << node.coordinate[0] << ", " << node.coordinate[1] << endl;
-  for (Node neighbor : node.neighbors) {
-    os << "- " << neighbor << endl;
-  }
-  return os;
 }

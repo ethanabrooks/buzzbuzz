@@ -43,24 +43,16 @@ Node nextDestination(vector<Node> path) {
 
 double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
     Node vertex1(coordinate1), vertex2(coordinate2);
-    cout<< "B" << endl;
     vertex1 = graphBetween(vertex1, vertex2, walls);
-    cout<< "C" << endl;
     double totalDistance = 0;
-    cout<< "D" << endl;
     vector<Node> path = runDijkstra(vertex1, vertex2);
-    cout<< "E" << endl;
     Node prev = vertex1;
-    cout<< "F" << endl;
-    cout<< path.size() << endl;
     Node next = nextDestination(path);
-    cout<< "G" << endl;
     for(int i = 2; i < path.size(); i++) {
         totalDistance+=getDistance(prev, next);
         prev = next;
         next = path.at(i);
     }
-    cout<< "H" << endl;
     totalDistance+=getDistance(prev, next);
     return totalDistance;
 }
@@ -146,7 +138,6 @@ vector<vec> getDistVecs(mat centroids,
         vec lightPos = glmToArma(light->getPosition());
 
         // get direction of shortest distance
-        cout<< "3" << endl;
         vector<vec>::iterator closestCentroid =
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
@@ -154,21 +145,18 @@ vector<vec> getDistVecs(mat centroids,
                 double toC2 = getTotalDistance(lightPos, c2, walls);
                 return toC1 < toC2;
               });
-        cout<< "4" << endl;
         Node lightNode(lightPos), centroidNode(*closestCentroid);
-        cout<< "5" << endl;
         lightNode = graphBetween(lightNode, centroidNode, walls);
-        cout<< "6" << endl;
         vector<Node> path = runDijkstra(lightNode, centroidNode);
-        cout<< "7" << endl;
         deltas.push_back(normalise(nextDestination(path).coordinate - lightPos));
 
-//        cout << "Light pos " << i << " " << lightPos[0] << endl;
-//        cout << "Light pos " << i << " " << lightPos[1] << endl;
-//        cout << "next dest " << i << " " << path[1].coordinate[0] << endl;
-//        cout << "next dest " << i << " " << path[1].coordinate[1] << endl;
-//        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
-//        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
+            cout << lightNode << endl;
+        cout << "Light pos " << i << " " << lightPos[0] << endl;
+        cout << "Light pos " << i << " " << lightPos[1] << endl;
+        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
+        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
+        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
+        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
@@ -251,31 +239,11 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
     for (Wall* wall : this->walls) {
         Wall t1 = getTWall(wall->point1, wall->point2);
         Wall t2 = getTWall(wall->point2, wall->point1);
-        cout << "t11 " << t1.point1[0] << endl;
-        cout << "t11 " << t1.point1[1] << endl;
-        cout << "t12 " << t1.point2[0] << endl;
-        cout << "t12 " << t1.point2[1] << endl;
-        cout << "t21 " << t2.point1[0] << endl;
-        cout << "t21 " << t2.point1[1] << endl;
-        cout << "t22 " << t2.point2[0] << endl;
-        cout << "t22 " << t2.point2[1] << endl;
         tWalls.push_back(t1);
         tWalls.push_back(t2);
     }
-    cout << "tWalls" << endl;
     for (int i = 0; i < tWalls.size() ; i++) {
         this->walls.push_back(&tWalls[i]);
-        cout << i << endl;
-    }
-    cout << "this-> walls " << this->walls.length() << endl;
-    int i = 0;
-    for (Wall* wall : this->walls) {
-        i++;
-        cout << i << endl;
-        cout << "point1 " << wall->point1[0] << endl;
-        cout << "point1 " << wall->point1[1] << endl;
-        cout << "point2 " << wall->point2[0] << endl;
-        cout << "point2 " << wall->point2[1] << endl;
     }
 }
 
@@ -307,12 +275,10 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
                                            this->walls);
 
     } else {
-        cout<< "1" << endl;
         centroids = getCentroids(coords, this->lights.size());
         deltas = getDistVecs(centroids, this->lights,
                                         false, // one light per centroid
                                         this->walls);
-        cout<< "2" << endl;
     }
     for (int i = 0; i < this->lights.length(); i++) {
 

@@ -104,7 +104,7 @@ Window::Window()
 
     this->maxRoundsSpinBox = new QSpinBox; // set max num of rounds before game over
     maxRoundsSpinBox->setRange(100, 10000);
-    maxRoundsSpinBox->setValue(1000);
+    maxRoundsSpinBox->setValue(5000);
     layout->addWidget(maxRoundsSpinBox, 2, 1);
     layout->setAlignment(maxRoundsSpinBox, Qt::AlignCenter);
     connect(maxRoundsSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateMaxRounds()));

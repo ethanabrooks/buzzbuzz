@@ -13,9 +13,24 @@ using namespace arma;
 class Node {
   public: vector<Node> neighbors;
           vec coordinate;
+
+          Node() {
+              this->coordinate = {0, 0};
+              this->neighbors = {};
+          }
+
           Node(vec coordinate) {
               this->coordinate = coordinate;
               this->neighbors = {};
+          }
+
+          Node(glm::vec2 v) {
+              this->coordinate = {v.x, v.y};
+              this->neighbors = {};
+          }
+
+          void addNeighbor(Node neighbor) {
+              this->neighbors.push_back(neighbor);
           }
 
           Node withNeighbor(Node neighbor) {
@@ -37,7 +52,11 @@ class Node {
           bool hasNeighbor(Node n) {
               return find(neighbors.begin(), neighbors.end(), n) != neighbors.end();
           }
+
+          glm::vec2 glm();
 };
+
+typedef map<Node, vector<Node>> graph;
 
 Node getWallNode(vec near, vec far, double lightRadius);
 mat getCoords(QVector<QVector<int> >* board, QList<Light*> lights, QList<Wall*> walls);
@@ -47,4 +66,5 @@ vec glmToArma(glm::vec2);
 Node graphBetween(Node here, Node there, QList<Wall*> walls);
 Wall getTWall(glm::vec2 w1, glm::vec2 w2);
 glm::vec2 armaToGlm(vec v);
+ostream& operator<<(ostream& os, const Node& node);
 #endif
