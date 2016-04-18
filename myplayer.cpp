@@ -20,10 +20,9 @@ vector<vec> POSITIONS = {vec({70, 70}),
                                     vec({430, 430}),
                                     vec({70, 430})};
 
-float SMOOTHING = 10; //3000;
-int NUM_WALLS = 6;
-float WALL_OFFSET = 40;//20;
-int START_HEAT_SEEKING = 0000;
+float SMOOTHING = 10;
+float WALL_OFFSET = 40;
+int START_HEAT_SEEKING = 1000;
 vector<Wall> newWalls;
 
 double getDistance(Node vertex1, Node vertex2) {
@@ -176,23 +175,6 @@ vector<vec> getDistVecs(mat centroids,
               });
         vec delta = getDelta(light, *closestCentroid, walls);
         deltas.push_back(delta);
-//        graph g = graphBetween(lightPos, *closestCentroid, walls);
-//        vector<Node> path = runDijkstra(Node(lightPos), Node(*closestCentroid), g);
-//        cout << endl << "path" << endl;
-//        for (Node n : path) {
-//            cout << n << endl;
-//        }
-//        cout << "end path" << endl;
-//        vec delta = normalise(nextDestination(path).coordinate - lightPos);
-//        deltas.push_back(delta);
-//        cout << "Light pos " << i << " " << lightPos[0] << endl;
-//        cout << "Light pos " << i << " " << lightPos[1] << endl;
-//        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
-//        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
-//        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
-//        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
-//        cout << "delta " << i << " " << delta[0] << endl;
-//        cout << "delta " << i << " " << delta[1] << endl;
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
@@ -329,24 +311,6 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
             deltas = vector<vec>();
             for (int i = 0; i < int(this->lights.size()); i++) {
                 deltas.push_back(getDelta(this->lights[i], destinations[i], walls));
-//                vec lightPos = glmToArma(this->lights[i]->getPosition());
-//                graph g = graphBetween(lightPos, positions[i], walls);
-//                vector<Node> path = runDijkstra(Node(lightPos), Node(positions[i]), g);
-//                cout << endl << "path" << endl;
-//                for (Node n : path) {
-//                    cout << n << endl;
-//                }
-//                vec delta = normalise(nextDestination(path).coordinate - lightPos);
-//                deltas.push_back(delta);
-//                cout << "end path" << endl;
-//                cout << "Light pos " << i << " " << lightPos[0] << endl;
-//                cout << "Light pos " << i << " " << lightPos[1] << endl;
-//                cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
-//                cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
-//                cout << "dest " << i << " " << positions[i][0] << endl;
-//                cout << "dest " << i << " " << positions[i][1] << endl;
-//                cout << "delta " << i << " " << delta[0] << endl;
-//                cout << "delta " << i << " " << delta[1] << endl;
             }
         }
     }
