@@ -24,6 +24,7 @@ vector<vec> POSITIONS = {vec({70, 70}),
 float SMOOTHING = 10;
 float WALL_OFFSET = 40;
 int START_HEAT_SEEKING = 300;
+bool DEBUG = true;
 vector<Wall> newWalls;
 
 namespace std
@@ -147,22 +148,28 @@ vec getDelta(Light* light, vec destination, QList<Wall*> walls) {
     vec lightPos = glmToArma(light->getPosition());
     graph g = graphBetween(lightPos, destination, walls);
     vector<Node> path = runDijkstra(Node(lightPos), Node(destination), g);
-    cout << endl << "path" << endl;
-    for (Node n : path) {
-        cout << n << endl;
-    }
     vec delta = normalise(nextDestination(path).coordinate - lightPos);
-    cout << "end path" << endl;
-    cout << "Light pos " <<  k << " " << lightPos[0] << endl;
-    cout << "Light pos " <<  k << " " << lightPos[1] << endl;
-    cout << "next dest " <<  k << " " << nextDestination(path).coordinate[0] << endl;
-    cout << "next dest " <<  k << " " << nextDestination(path).coordinate[1] << endl;
-    cout << "dest " <<  k << " " << destination[0] << endl;
-    cout << "dest " <<  k << " " << destination[1] << endl;
-    cout << "delta " <<  k << " " << delta[0] << endl;
-    cout << "delta " <<  k << " " << delta[1] << endl;
-    k++;
-    if (k > 4) {k = 1;}
+    if (DEBUG) {
+        cout << endl << "graph" << endl;
+        for (Node n : g[Node(lightPos)]) {
+            cout << "-" << n << endl;
+        }
+        cout << endl << "path" << endl;
+        for (Node n : path) {
+            cout << n << endl;
+        }
+        cout << "end path" << endl;
+        cout << "Light pos " <<  k << " " << lightPos[0] << endl;
+        cout << "Light pos " <<  k << " " << lightPos[1] << endl;
+        cout << "next dest " <<  k << " " << nextDestination(path).coordinate[0] << endl;
+        cout << "next dest " <<  k << " " << nextDestination(path).coordinate[1] << endl;
+        cout << "dest " <<  k << " " << destination[0] << endl;
+        cout << "dest " <<  k << " " << destination[1] << endl;
+        cout << "delta " <<  k << " " << delta[0] << endl;
+        cout << "delta " <<  k << " " << delta[1] << endl;
+        k++;
+        if (k > 4) {k = 1;}
+    }
     return delta;
 }
 
@@ -343,11 +350,6 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
         }
 
         velocities[i] = velocity;
-        cout << "currPos " << i << " " << currPos[0] << endl;
-        cout << "currPos " << i << " " << currPos[1] << endl;
-        cout << "velocity " << i << " " << velocity[0] << endl;
-        cout << "velocity " << i << " " << velocity[1] << endl;
-
         this->lights.at(i)->moveTo(currPos.x+velocity[0],
                                    currPos.y+velocity[1]);
 
