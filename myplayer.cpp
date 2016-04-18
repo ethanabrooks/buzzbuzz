@@ -21,7 +21,6 @@ vector<vec> POSITIONS = {vec({430, 70}),
 
 float SMOOTHING = 10; //3000;
 int NUM_WALLS = 6;
-float NODE_OFFSET = 20;
 vector<Wall> newWalls;
 
 double getDistance(Node vertex1, Node vertex2) {
@@ -51,7 +50,7 @@ double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
     vector<Node> path = runDijkstra(vertex1, vertex2, g);
     Node prev = vertex1;
     Node next = nextDestination(path);
-    for(int i = 2; i < path.size(); i++) {
+    for(int i = 2; i < int(path.size()); i++) {
         totalDistance+=getDistance(prev, next);
         prev = next;
         next = path.at(i);
@@ -144,7 +143,7 @@ vector<vec> getDistVecs(mat centroids,
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
                 double toC1 = getDistance(Node(lightPos), Node(c1));
-                double toC2 = getDistance(Node(lightPos), Node(c1));
+                double toC2 = getDistance(Node(lightPos), Node(c2));
                 return toC1 < toC2;
               });
         graph g = graphBetween(lightPos, *closestCentroid, walls);
@@ -187,11 +186,6 @@ glm::vec2 MyPlayer::initializeFrog(QVector<QVector<int> >* board) {
      * But you can place it anywhere you like!
      */
     return armaToGlm(FROG_POS);
-}
-
-glm::vec2 extend(glm::vec2 near, glm::vec2 far) {
-    glm::vec2 offset = setLength(near - far, NODE_OFFSET);
-    return near + offset;
 }
 
 Wall extendWall(Wall w) {
@@ -259,7 +253,7 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
     }
     this->walls.clear();
     cout << "newWalls size " << newWalls.size() << endl;
-    for (int i = 0; i < newWalls.size() ; i++) {
+    for (int i = 0; i < int(newWalls.size()) ; i++) {
         this->walls.push_back(&newWalls[i]);
     }
     cout << "walls size " << this->walls.size() << endl;
@@ -277,7 +271,6 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     // coordinates of mosquitos outside light
     mat coords = getCoords(board, this->lights, this->walls);
     vector<vec> deltas;
-    int numLights = this->lights.size();
     int numMosqsToCatch = size(coords)[1];
 
     cout << "numMosqsToCatch " << numMosqsToCatch << endl;

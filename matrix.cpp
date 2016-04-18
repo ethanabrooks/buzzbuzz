@@ -13,6 +13,7 @@ using namespace arma;
 float T_WIDTH = 20;
 float WALL_INSET = 10;
 float BOARD_SIZE = 500;
+float NODE_OFFSET = 20;
 
 ostream& operator<<(ostream& os, const Node& node)
 {
@@ -120,11 +121,16 @@ bool inBounds(Node n) {
            && y <= BOARD_SIZE;
 }
 
+glm::vec2 extend(glm::vec2 near, glm::vec2 far) {
+    glm::vec2 offset = setLength(near - far, NODE_OFFSET);
+    return near + offset;
+}
+
 graph graphBetween(vec here, vec there, QList<Wall*> walls) {
     vector<Node> nodes = {Node(here), Node(there)};
     for (Wall* wall : walls) {
-        Node n1 = Node(wall->point1);
-        Node n2 = Node(wall->point2);
+        Node n1(extend(wall->point1 , wall->point2));
+        Node n2(extend(wall->point2 , wall->point1));
         if (inBounds(n1)) {
             nodes.push_back(n1);
         }
@@ -136,8 +142,8 @@ graph graphBetween(vec here, vec there, QList<Wall*> walls) {
     for (Node n : nodes) {
         neighbors[n] = {};
     }
-    for (long i = 0; i < nodes.size(); i++) {
-        for (long j = 0; j < nodes.size(); j++) {
+    for (int i = 0; i < int(nodes.size()); i++) {
+        for (int j = 0; j < int(nodes.size()); j++) {
             bool straightShot = true;
             for (Wall* wall : walls) {
                 if (wall->isInvalidMove(nodes[i].glm(), nodes[j].glm())) {

@@ -68,4 +68,5 @@ Wall getTWall(glm::vec2 w1, glm::vec2 w2);
 glm::vec2 armaToGlm(vec v);
 glm::vec2 setLength(glm::vec2 v, float length);
 ostream& operator<<(ostream& os, const Node& node);
+glm::vec2 extend(glm::vec2 near, glm::vec2 far);
 #endif
