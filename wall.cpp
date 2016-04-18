@@ -25,6 +25,7 @@ bool between(float x1, float y1, float x2, float y2, float x3, float y3) {
 
 bool Wall::isInvalidMove(glm::vec2 start, glm::vec2 end)
 {
+
     float x1 = start.x;
     float y1 = start.y;
     float x2 = end.x;
@@ -34,15 +35,17 @@ bool Wall::isInvalidMove(glm::vec2 start, glm::vec2 end)
     float y3 = this->point1.y;
     float x4 = this->point2.x;
     float y4 = this->point2.y;
-    if (x1 == 10 && y1 == 200 && 231 < x2 && 264 < y2) {
+
+    bool condition = x1 == 250 && y1 == 70 && x2 == 50 && x3 == 55;
+    if (condition) {
     cout << "x1 " << x1 << std::endl;
-    cout << "y1 " << y1 << endl;
+    cout << "y1 " << 500 -y1 << endl;
     cout << "x2 " << x2 << endl;
-    cout << "y2 " << y2 << endl;
+    cout << "y2 " << 500-y2 << endl;
     cout << "x3 " << x3 << endl;
-    cout << "y3 " << y3 << endl;
+    cout << "y3 " << 500-y3 << endl;
     cout << "x4 " << x4 << endl;
-    cout << "y4 " << y4 << endl;
+    cout << "y4 " << 500-y4 << endl << endl;
     }
     float a1, a2, a3, a4;
     // deal with special cases
@@ -80,16 +83,19 @@ bool Wall::isInvalidMove(glm::vec2 start, glm::vec2 end)
         // check if p2 is between p3 and p4 (we already know p1 is not collinear
         return between(x3, y3, x4, y4, x2, y2);
     } else { //test for regular intersection
-//        if (x1 == 10 && y1 == 200 && 231 < x2 && 264 < y2) {
+        bool condition1 = (a1 > 0.0) ^ (a2 > 0.0);
+        bool condition2 = (a3 > 0.0) ^ (a4 > 0.0);
+        if (condition) {
             cout << "a1 " << a1 << endl;
             cout << "a2 " << a2 << endl;
             cout << "a3 " << a3 << endl;
             cout << "a4 " << a4 << endl;
-            cout << "(a1 > 0.0) ^ (a2 > 0.0)" << ((a1 > 0.0) ^ (a2 > 0.0)) << endl;
-            cout << "(a3 > 0.0) ^ (a4 > 0.0)" << ((a3 > 0.0) ^ (a4 > 0.0)) << endl;
-            cout << "!(((a1 > 0.0) ^ (a2 > 0.0)) || ((a3 > 0.0) ^ (a4 > 0.0)))" << !(((a1 > 0.0) ^ (a2 > 0.0)) || ((a3 > 0.0) ^ (a4 > 0.0))) << endl;
-//        }
-        return !(((a1 > 0.0) ^ (a2 > 0.0)) || ((a3 > 0.0) ^ (a4 > 0.0)));
+            cout << "(a1 > 0.0) ^ (a2 > 0.0)" << condition1 << endl;
+            cout << "(a3 > 0.0) ^ (a4 > 0.0)" << condition2 << endl;
+            cout << "((a1 > 0.0) ^ (a2 > 0.0)) && ((a3 > 0.0) ^ (a4 > 0.0))" << (((a1 > 0.0) ^ (a2 > 0.0)) && ((a3 > 0.0) ^ (a4 > 0.0))) << endl << endl;
+        }
+
+        return ((a1 > 0.0) ^ (a2 > 0.0)) && ((a3 > 0.0) ^ (a4 > 0.0));
     }
 }
 

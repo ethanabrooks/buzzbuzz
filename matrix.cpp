@@ -10,9 +10,9 @@
 using namespace std;
 using namespace arma;
 
-float T_WIDTH = 5;
-float WALL_INSET = 10;
-float NODE_OFFSET = 40;
+float T_WIDTH = 30;
+float WALL_INSET = 5;
+float NODE_OFFSET = 5;
 float BOARD_SIZE = 500;
 
 ostream& operator<<(ostream& os, const Node& node)
@@ -34,11 +34,11 @@ bool withinLight(glm::vec2 mosquitoPos,
                  QList<Wall*> walls) {
     for (Light* light : lights) {
         bool wallInWay = false;
-//        for (Wall* wall : walls) {
-//            if (wall->isInvalidMove(mosquitoPos, light->getPosition())) {
-//                wallInWay = true;
-//            }
-//        }
+        for (Wall* wall : walls) {
+            if (wall->isInvalidMove(mosquitoPos, light->getPosition())) {
+                wallInWay = true;
+            }
+        }
         glm::vec2 lightPos = light->getPosition();
         double distance =  sqrt(pow(mosquitoPos.x - lightPos.x, 2)
                               + pow(mosquitoPos.y - lightPos.y, 2));
@@ -169,13 +169,13 @@ graph graphBetween(vec here, vec there, QList<Wall*> walls) {
 //            cout << "connected? " << straightShot << endl;
         }
     }
-    for (Node n0 : nodes) {
-        cout << endl << endl << n0.coordinate[0] << '\t' << 500 - n0.coordinate[1] << endl;
-        for (Node n_ : neighbors[n0]) {
-            cout <<  n_.coordinate[0] << "\t"
-                 << 500 - n_.coordinate[1] << endl;
-        }
-    }
+//    for (Node n0 : nodes) {
+//        cout << endl << "next" << endl << n0.coordinate[0] << '\t' << 500 - n0.coordinate[1] << endl;
+//        for (Node n_ : neighbors[n0]) {
+//            cout <<  n_.coordinate[0] << "\t"
+//                 << 500 - n_.coordinate[1] << endl;
+//        }
+//    }
     return neighbors;
 }
 
