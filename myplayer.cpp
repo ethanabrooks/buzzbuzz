@@ -10,18 +10,6 @@
 using namespace std;
 using namespace arma;
 
-namespace std
-{
-    template<> struct less<vec>
-    {
-       bool operator() (const vec& lhs, const vec& rhs) const
-       {
-           return lhs[0] < rhs[0];
-       }
-    };
-}
-
-std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph allNeighbors);
 
 int roundNum = 0;
 int numLights = 4;
@@ -37,6 +25,31 @@ float SMOOTHING = 10;
 float WALL_OFFSET = 40;
 int START_HEAT_SEEKING = 1000;
 vector<Wall> newWalls;
+
+namespace std
+{
+    template<> struct less<vec>
+    {
+       bool operator() (const vec& lhs, const vec& rhs) const
+       {
+           return lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0];
+       }
+    };
+}
+
+map<vec, double> dist;
+
+namespace std
+{
+    template<> struct greater<Node>
+    {
+       bool operator() (const Node& lhs, const Node& rhs) const
+       {
+           return dist[lhs.coordinate] > dist[rhs.coordinate];
+       }
+    };
+}
+
 
 double getDistance(Node vertex1, Node vertex2) {
     double xdiff = vertex1.coordinate[0] - vertex2.coordinate[0];
@@ -58,6 +71,57 @@ Node nextDestination(vector<Node> path) {
     }
 }
 
+vector<Node> runDijkstra(Node currentPosition, Node destination, graph allNeighbors) {
+    vector<Node> path;
+    //vector<Node>::iterator it = allNeighbors[currentPosition].begin();
+   //while(it != allNeighbors[currentPosition].end()) {
+       //if(*it == destination) {
+           //path->push_back(currentPosition);
+           //path->push_back(destination);
+           //return *path;
+       //}
+       //it++;
+   //}
+   priority_queue<Node, vector<Node>, greater<Node>> active;
+   // map<vec, double> dist;
+   dist.clear();
+   map<Node, vec> prev; //
+   //set<Node> active;
+   currentPosition.distance = 0.0;
+   for(pair<Node, vector<Node>> j: allNeighbors) {
+       if(j.first == currentPosition) {
+           qDebug() << "it's there" << endl;
+       }
+       dist[j.first.coordinate] = DBL_MAX;
+       active.push(j.first);
+   }
+   dist[currentPosition.coordinate] = 0.0;
+   while(!active.empty()) {
+     Node current = active.top();
+     active.pop();
+     for(Node neighbor : allNeighbors[current]) {
+         map<vec,double>::iterator it = dist.find(neighbor.coordinate);
+         map<vec,double>::iterator pre = dist.find(current.coordinate);
+         double distThroughI = pre->second + getDistance(neighbor, current);
+         if(it->second > distThroughI) {
+           dist[neighbor.coordinate] = distThroughI;
+           prev[neighbor] = current.coordinate;
+         }
+     }
+   }
+   map<Node, vec>::iterator pathIt = prev.find(destination);
+   path.insert(path.begin(), Node(destination.coordinate));
+   while(pathIt != prev.find(currentPosition)) {
+       vec p = pathIt->second;
+       path.insert(path.begin(),Node(p));
+       pathIt = prev.find(Node(p));
+//       pathIt++;
+   }
+   cout << "path size " << path.size() << endl;
+   return path;
+}
+
+
 double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
     graph g = graphBetween(coordinate1, coordinate2, walls);
     double totalDistance = 0;
@@ -74,79 +138,6 @@ double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
     return totalDistance;
 }
 
-namespace std
-{
-    template<> struct greater<Node>
-    {
-       bool operator() (const Node& lhs, const Node& rhs) const
-       {
-           return dist[lhs.coordinate] > dist[rhs.coordinate];
-       }
-    };
-}
-
-std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph allNeighbors) {
-    std::vector<Node>* path = new std::vector<Node>;
-    std::vector<Node>::iterator it = allNeighbors[currentPosition].begin();
-    while(it != allNeighbors[currentPosition].end()) {
-        if(*it == destination) {
-            path->push_back(currentPosition);
-            path->push_back(destination);
-            return *path;
-        }
-        it++;
-    }
-
-    std::priority_queue<Node, std::vector<Node>, std::greater<Node> >* active = new std::priority_queue<Node, std::vector<Node>, std::greater<Node> >;
-    //std::map<vec, double> dist;
-    dist.clear();
-    std::map<Node, vec> prev;
-    //set<Node> active;
-    currentPosition.distance = 0.0;
-    for(pair<Node, vector<Node>> j: allNeighbors) {
-        if(j.first.coordinate[0] == currentPosition.coordinate[0] && j.first.coordinate[1] == currentPosition.coordinate[1]) {
-            qDebug() << "it's there" << endl;
-        }
-        dist[j.first.coordinate] = DBL_MAX;
-        active->push(j.first);
-    }
-    dist[currentPosition.coordinate] = 0.0;
-    while(!active->empty()) {
-        Node current = active->top();
-            active->pop();
-            for(Node i : allNeighbors[current]) {
-                map<vec,double>::iterator it = dist.begin();
-                while(it != dist.end()) {
-                    if(it->first[0] == i.coordinate[0] && it->first[1] == i.coordinate[1] ) break;
-                    it++;
-
-                }
-                if(it == dist.end()) {
-                    qDebug() << "happening" << endl;
-                }
-                map<vec,double>::iterator pre = dist.begin();
-                while(pre != dist.end()) {
-                    if(pre->first[0] == current.coordinate[0] && pre->first[1] == current.coordinate[1] ) break;
-                    pre++;
-                }
-                if(it->second > pre->second + getDistance(i, current)) {
-                 dist[i.coordinate] = pre->second + getDistance(i, current);
-                 i.distance = dist[i.coordinate];
-                 prev[i] = current.coordinate;
-                }
-            }
-    }
-    map<Node, vec>::iterator pathIt = prev.find(destination);
-    path->insert(path->begin(), Node(destination.coordinate));
-    while(pathIt != prev.find(currentPosition)) {
-        vec p = pathIt->second;
-        path->insert(path->begin(),Node(p));
-        pathIt = prev.find(Node(p));
-        pathIt++;
-    }
-    delete(active);
-    return *path;
-}
 
 int  k = 1;
 
