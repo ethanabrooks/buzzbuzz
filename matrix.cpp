@@ -10,10 +10,10 @@
 using namespace std;
 using namespace arma;
 
+float BOARD_SIZE = 500;
 float T_WIDTH = 20;
 float WALL_INSET = 10;
-float BOARD_SIZE = 500;
-float NODE_OFFSET = 20;
+float NODE_OFFSET = 5;//20;
 
 ostream& operator<<(ostream& os, const Node& node)
 {
@@ -121,16 +121,16 @@ bool inBounds(Node n) {
            && y <= BOARD_SIZE;
 }
 
-glm::vec2 extend(glm::vec2 near, glm::vec2 far) {
-    glm::vec2 offset = setLength(near - far, NODE_OFFSET);
+glm::vec2 extend(glm::vec2 near, glm::vec2 far, float offsetLength) {
+    glm::vec2 offset = setLength(near - far, offsetLength);
     return near + offset;
 }
 
 graph graphBetween(vec here, vec there, QList<Wall*> walls) {
     vector<Node> nodes = {Node(here), Node(there)};
     for (Wall* wall : walls) {
-        Node n1(extend(wall->point1 , wall->point2));
-        Node n2(extend(wall->point2 , wall->point1));
+        Node n1(extend(wall->point1 , wall->point2, NODE_OFFSET));
+        Node n2(extend(wall->point2 , wall->point1, NODE_OFFSET));
         if (inBounds(n1)) {
             nodes.push_back(n1);
         }

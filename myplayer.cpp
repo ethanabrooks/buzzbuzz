@@ -21,6 +21,7 @@ vector<vec> POSITIONS = {vec({430, 70}),
 
 float SMOOTHING = 10; //3000;
 int NUM_WALLS = 6;
+float WALL_OFFSET = 30;//20;
 vector<Wall> newWalls;
 
 double getDistance(Node vertex1, Node vertex2) {
@@ -189,7 +190,8 @@ glm::vec2 MyPlayer::initializeFrog(QVector<QVector<int> >* board) {
 }
 
 Wall extendWall(Wall w) {
-    return Wall(extend(w.point1, w.point2), extend(w.point2, w.point1));
+    return Wall(extend(w.point1, w.point2, WALL_OFFSET),
+                extend(w.point2, w.point1, WALL_OFFSET));
 }
 
 
@@ -276,7 +278,8 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     cout << "numMosqsToCatch " << numMosqsToCatch << endl;
 
     float acceleration = 1 / (SMOOTHING * cbrt(numMosqsToCatch) + 1);
-    if (numMosqsToCatch < 50) {
+//    if (numMosqsToCatch < 50) {
+    if (true) {
         centroids = FROG_POS; // go to the frog
         deltas = getDistVecs(centroids, this->lights,
                                            true, // more than one light per centroid
