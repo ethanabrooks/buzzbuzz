@@ -277,7 +277,7 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     mat coords = getCoords(board, this->lights, this->walls);
     vector<vec> deltas;
     int numMosqsToCatch = size(coords)[1];
-    int numMosqsToLeave = numMosqsToCatch / 10;
+    int numMosqsToLeave = 50;
 
     cout << "numMosqsToCatch " << numMosqsToCatch << endl;
 
