@@ -8,7 +8,7 @@
 using namespace std;
 using namespace arma;
 
-std::vector<Node>& runDijkstra(Node currentPosition, Node destination);
+std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph allNeighbors);
 
 int numLights = 4;
 mat centroids;
@@ -19,7 +19,7 @@ vector<vec> POSITIONS = {vec({430, 70}),
                                     vec({70, 70}),
                                     vec({430, 430})};
 
-float SMOOTHING = 20; //3000;
+float SMOOTHING = 10; //3000;
 int NUM_WALLS = 6;
 vector<Wall> tWalls;
 
@@ -139,35 +139,37 @@ vector<vec> getDistVecs(mat centroids,
         // convert glm::vec to vec
         vec lightPos = glmToArma(light->getPosition());
 
+        cout << "2" << endl;
         // get direction of shortest distance
         vector<vec>::iterator closestCentroid =
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
-                double toC1 = getTotalDistance(lightPos, c1, walls);
-                double toC2 = getTotalDistance(lightPos, c2, walls);
+                double toC1 = getDistance(Node(lightPos), Node(c1));
+                double toC2 = getDistance(Node(lightPos), Node(c1));
                 return toC1 < toC2;
               });
+        cout << "3" << endl;
         graph g = graphBetween(lightPos, *closestCentroid, walls);
-        vector<Node> path = runDijkstra(lightNode, Node(*closestCentroid), g);
-        cout << "lightNode" << endl;
-        cout << lightNode << endl;
-        cout << endl << "path" << endl;
-        for (Node n : path) {
-            cout << n << endl;
-        }
-        cout << "end path" << endl;
+        cout << "4" << endl;
+        vector<Node> path = runDijkstra(Node(lightPos), Node(*closestCentroid), g);
+        cout << "5" << endl;
+//        cout << endl << "path" << endl;
+//        for (Node n : path) {
+//            cout << n << endl;
+//        }
+//        cout << "end path" << endl;
         deltas.push_back(normalise(nextDestination(path).coordinate - lightPos));
-
-        cout << "Light pos " << i << " " << lightPos[0] << endl;
-        cout << "Light pos " << i << " " << lightPos[1] << endl;
-        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
-        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
-        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
-        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
+//        cout << "Light pos " << i << " " << lightPos[0] << endl;
+//        cout << "Light pos " << i << " " << lightPos[1] << endl;
+//        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
+//        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
+//        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
+//        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
     }
+    cout << "len deltas " << deltas.size() << endl;
     return deltas;
 }
 
@@ -252,12 +254,6 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
     for (int i = 0; i < tWalls.size() ; i++) {
         this->walls.push_back(&tWalls[i]);
     }
-    for (Wall* wall : this->walls) {
-        cout << "p1 " << wall->point1[0] << endl;
-        cout << "p1 " << wall->point1[1] << endl;
-        cout << "p2 " << wall->point2[0] << endl;
-        cout << "p2 " << wall->point2[1] << endl;
-    }
 }
 
 /*
@@ -275,35 +271,41 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     int numLights = this->lights.size();
     int numMosqsToCatch = size(coords)[1];
 
-    float acceleration = 1 / (SMOOTHING * cbrt(numMosqsToCatch) + 1);
-    if (numMosqsToCatch < numLights) {
-        if (numMosqsToCatch == 0) {
-            centroids = FROG_POS; // go to the frog
-        } else {
-            centroids = coords; // go to remaining mosquitos
-        }
+    cout << "numMosqsToCatch " << numMosqsToCatch << endl;
 
+    float acceleration = 1 / (SMOOTHING * cbrt(numMosqsToCatch) + 1);
+    if (numMosqsToCatch < 50) {
+        centroids = FROG_POS; // go to the frog
         deltas = getDistVecs(centroids, this->lights,
                                            true, // more than one light per centroid
                                            this->walls);
 
     } else {
         centroids = getCentroids(coords, this->lights.size());
+        cout << "1" << endl;
         deltas = getDistVecs(centroids, this->lights,
                                         false, // one light per centroid
                                         this->walls);
+        cout << "6" << endl;
     }
     for (int i = 0; i < this->lights.length(); i++) {
 
         // this gets the current position of the light
+        cout << "7" << endl;
         glm::vec2 currPos = this->lights.at(i)->getPosition();
-
+        cout << "8" << endl;
         // can't change ligth position more than one unit
+        cout << "len deltas 2 " <<  deltas.size() << endl;
         vec velocity = normalise(velocities[i] + acceleration * deltas[i]) / 2;
+                cout << "9" << endl;
         velocities[i] = velocity;
+        cout << "10" << endl;
+
 
         this->lights.at(i)->moveTo(currPos.x+velocity[0],
                                    currPos.y+velocity[1]);
+
+        cout << "11" << endl;
 
         /*
          * This is a pretty bad solution!
