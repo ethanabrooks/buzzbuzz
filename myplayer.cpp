@@ -21,7 +21,7 @@ vector<vec> POSITIONS = {vec({430, 70}),
 
 float SMOOTHING = 10; //3000;
 int NUM_WALLS = 6;
-float WALL_OFFSET = 30;//20;
+float WALL_OFFSET = 40;//20;
 vector<Wall> newWalls;
 
 double getDistance(Node vertex1, Node vertex2) {
@@ -277,9 +277,9 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
 
     cout << "numMosqsToCatch " << numMosqsToCatch << endl;
 
-    float acceleration = 1 / (SMOOTHING * cbrt(numMosqsToCatch) + 1);
-//    if (numMosqsToCatch < 50) {
-    if (true) {
+    float acceleration = 1 / (SMOOTHING * cbrt(numMosqsToCatch - 50) + 1);
+    if (numMosqsToCatch < 50) {
+//    if (true) {
         centroids = FROG_POS; // go to the frog
         deltas = getDistVecs(centroids, this->lights,
                                            true, // more than one light per centroid
