@@ -15,15 +15,15 @@ int numLights = 4;
 mat centroids;
 vector <vec> velocities;
 vec FROG_POS = {250, 250};
-vector<vec> POSITIONS = {vec({430, 70}),
-                                    vec({70, 430}),
-                                    vec({70, 70}),
-                                    vec({430, 430})};
+vector<vec> POSITIONS = {vec({70, 70}),
+                                    vec({430, 70}),
+                                    vec({430, 430}),
+                                    vec({70, 430})};
 
 float SMOOTHING = 10; //3000;
 int NUM_WALLS = 6;
 float WALL_OFFSET = 40;//20;
-bool heat_seeking = false;
+int START_HEAT_SEEKING = 1000;
 vector<Wall> newWalls;
 
 double getDistance(Node vertex1, Node vertex2) {
@@ -292,22 +292,37 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
                                            true, // more than one light per centroid
                                            this->walls);
     } else {
-        cout << "ROUND NUM " << roundNum << endl;
-        if (roundNum > 500) {
+        if (roundNum > START_HEAT_SEEKING) {
             centroids = getCentroids(coords, this->lights.size());
+            deltas = getDistVecs(centroids, this->lights,
+                                            false, // one light per centroid
+                                            this->walls);
         } else {
             vector<vec> positions = POSITIONS;
             rotate(positions.begin(), positions.begin() + 1, positions.end());
-            centroids = mat();
-            for (vec pos : positions) {
-                centroids = join_horiz(centroids, pos);
-                cout << "centroids" << endl;
-                cout << centroids << endl;
+            deltas = vector<vec>();
+            for (int i = 0; i < int(this->lights.size()); i++) {
+                vec lightPos = glmToArma(this->lights[i]->getPosition());
+                graph g = graphBetween(lightPos, positions[i], walls);
+                vector<Node> path = runDijkstra(Node(lightPos), Node(positions[i]), g);
+                cout << endl << "path" << endl;
+                for (Node n : path) {
+                    cout << n << endl;
+                }
+                vec delta = normalise(nextDestination(path).coordinate - lightPos);
+                deltas.push_back(delta);
+                cout << "end path" << endl;
+                cout << "Light pos " << i << " " << lightPos[0] << endl;
+                cout << "Light pos " << i << " " << lightPos[1] << endl;
+                cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
+                cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
+                cout << "dest " << i << " " << positions[i][0] << endl;
+                cout << "dest " << i << " " << positions[i][1] << endl;
+                cout << "delta " << i << " " << delta[0] << endl;
+                cout << "delta " << i << " " << delta[1] << endl;
+
             }
         }
-        deltas = getDistVecs(centroids, this->lights,
-                                        false, // one light per centroid
-                                        this->walls);
     }
     for (int i = 0; i < this->lights.length(); i++) {
         // this gets the current position of the light
