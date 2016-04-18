@@ -1,5 +1,8 @@
 #include "wall.h"
 #include <include/glm/glm.hpp>
+#include <iostream>
+
+using namespace std;
 
 Wall::Wall(glm::vec2 pos, glm::vec2 pos2)
 {
@@ -31,6 +34,16 @@ bool Wall::isInvalidMove(glm::vec2 start, glm::vec2 end)
     float y3 = this->point1.y;
     float x4 = this->point2.x;
     float y4 = this->point2.y;
+    if (x1 == 10 && y1 == 200 && 231 < x2 && 264 < y2) {
+    cout << "x1 " << x1 << std::endl;
+    cout << "y1 " << y1 << endl;
+    cout << "x2 " << x2 << endl;
+    cout << "y2 " << y2 << endl;
+    cout << "x3 " << x3 << endl;
+    cout << "y3 " << y3 << endl;
+    cout << "x4 " << x4 << endl;
+    cout << "y4 " << y4 << endl;
+    }
     float a1, a2, a3, a4;
     // deal with special cases
 
@@ -67,7 +80,16 @@ bool Wall::isInvalidMove(glm::vec2 start, glm::vec2 end)
         // check if p2 is between p3 and p4 (we already know p1 is not collinear
         return between(x3, y3, x4, y4, x2, y2);
     } else { //test for regular intersection
-        return ((a1 > 0.0) ^ (a2 > 0.0)) && ((a3 > 0.0) ^ (a4 > 0.0));
+//        if (x1 == 10 && y1 == 200 && 231 < x2 && 264 < y2) {
+            cout << "a1 " << a1 << endl;
+            cout << "a2 " << a2 << endl;
+            cout << "a3 " << a3 << endl;
+            cout << "a4 " << a4 << endl;
+            cout << "(a1 > 0.0) ^ (a2 > 0.0)" << ((a1 > 0.0) ^ (a2 > 0.0)) << endl;
+            cout << "(a3 > 0.0) ^ (a4 > 0.0)" << ((a3 > 0.0) ^ (a4 > 0.0)) << endl;
+            cout << "!(((a1 > 0.0) ^ (a2 > 0.0)) || ((a3 > 0.0) ^ (a4 > 0.0)))" << !(((a1 > 0.0) ^ (a2 > 0.0)) || ((a3 > 0.0) ^ (a4 > 0.0))) << endl;
+//        }
+        return !(((a1 > 0.0) ^ (a2 > 0.0)) || ((a3 > 0.0) ^ (a4 > 0.0)));
     }
 }
 

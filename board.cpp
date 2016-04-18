@@ -6,7 +6,7 @@ int Board::boardSize = 500.0f;
 
 Board::Board()
 {
-    this->numLights = 4;
+    this->numLights = 1;
     this->numMosquitoes = 500;
     this->numWalls = 1;
     this->frog = new Frog();
