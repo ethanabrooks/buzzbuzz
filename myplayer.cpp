@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <math.h>
 #include <set>
+#include <queue>
+#include <float.h>
 
 using namespace std;
 using namespace arma;
@@ -14,14 +16,16 @@ int numLights = 4;
 mat centroids;
 vector <vec> velocities;
 vec FROG_POS = {250, 250};
-vector<vec> POSITIONS = {vec({430, 70}),
-                                    vec({70, 430}),
+vector<vec> POSITIONS = {vec({70, 430}),
+                                    vec({430, 70}),
                                     vec({70, 70}),
                                     vec({430, 430})};
 
 float SMOOTHING = 10; //3000;
 int NUM_WALLS = 6;
-vector<Wall> tWalls;
+float WALL_OFFSET = 40;//20;
+vector<Wall> newWalls;
+std::map<vec, double> dist;
 
 double getDistance(Node vertex1, Node vertex2) {
     double xdiff = vertex1.coordinate[0] - vertex2.coordinate[0];
@@ -50,7 +54,7 @@ double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
     vector<Node> path = runDijkstra(vertex1, vertex2, g);
     Node prev = vertex1;
     Node next = nextDestination(path);
-    for(int i = 2; i < path.size(); i++) {
+    for(int i = 2; i < int(path.size()); i++) {
         totalDistance+=getDistance(prev, next);
         prev = next;
         next = path.at(i);
@@ -70,6 +74,17 @@ namespace std
     };
 }
 
+namespace std
+{
+    template<> struct greater<Node>
+    {
+       bool operator() (const Node& lhs, const Node& rhs) const
+       {
+           return dist[lhs.coordinate] > dist[rhs.coordinate];
+       }
+    };
+}
+
 
 std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph allNeighbors) {
     std::vector<Node>* path = new std::vector<Node>;
@@ -82,17 +97,21 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
         }
         it++;
     }
-    std::map<vec, double> dist;
+
+    std::priority_queue<Node, std::vector<Node>, std::greater<Node> >* active = new std::priority_queue<Node, std::vector<Node>, std::greater<Node> >;
+    //std::map<vec, double> dist;
+    dist.clear();
     std::map<Node, vec> prev;
+    //set<Node> active;
+    currentPosition.distance = 0.0;
+    for(pair<Node, vector<Node> j: allNeighbors) {
+        dist[j.coordinate] = DBL_MAX;
+        active->push(j);
+    }
     dist[currentPosition.coordinate] = 0.0;
-    set<Node> active;
-    active.insert(currentPosition);
-    while(!active.empty()) {
-        Node current = *active.begin();
-        if(current == destination) {
-            break;
-        } else {
-            active.erase(active.begin());
+    while(!active->empty()) {
+        Node current = active->top();
+            active->pop();
             for(Node i : allNeighbors[current]) {
                 map<vec,double>::iterator it = dist.begin();
                 while(it != dist.end()) {
@@ -100,27 +119,29 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
                     it++;
 
                 }
+                if(it == dist.end()) {
+                    qDebug() << "happening" << endl;
+                }
                 map<vec,double>::iterator pre = dist.begin();
                 while(pre != dist.end()) {
                     if(pre->first[0] == current.coordinate[0] && pre->first[1] == current.coordinate[1] ) break;
                     pre++;
                 }
-                if(it == dist.end() || it->second > pre->second + getDistance(i, current)) {
+                if(it->second > pre->second + getDistance(i, current)) {
                  dist[i.coordinate] = pre->second + getDistance(i, current);
+                 i.distance = dist[i.coordinate];
                  prev[i] = current.coordinate;
-                 active.insert(i);
                 }
             }
-        }
     }
     map<Node, vec>::iterator pathIt = prev.find(destination);
     path->insert(path->begin(), Node(destination.coordinate));
     while(pathIt != prev.find(currentPosition)) {
         vec p = pathIt->second;
         path->insert(path->begin(),Node(p));
-        //path->insert(path->begin(),*next);
         pathIt = prev.find(Node(p));
     }
+    delete(active);
     return *path;
 }
 
@@ -139,37 +160,35 @@ vector<vec> getDistVecs(mat centroids,
         // convert glm::vec to vec
         vec lightPos = glmToArma(light->getPosition());
 
-        cout << "2" << endl;
         // get direction of shortest distance
         vector<vec>::iterator closestCentroid =
           min_element(available.begin(), available.end(),
               [&](vec c1, vec c2){
                 double toC1 = getDistance(Node(lightPos), Node(c1));
-                double toC2 = getDistance(Node(lightPos), Node(c1));
+                double toC2 = getDistance(Node(lightPos), Node(c2));
                 return toC1 < toC2;
               });
-        cout << "3" << endl;
         graph g = graphBetween(lightPos, *closestCentroid, walls);
-        cout << "4" << endl;
         vector<Node> path = runDijkstra(Node(lightPos), Node(*closestCentroid), g);
-        cout << "5" << endl;
-//        cout << endl << "path" << endl;
-//        for (Node n : path) {
-//            cout << n << endl;
-//        }
-//        cout << "end path" << endl;
-        deltas.push_back(normalise(nextDestination(path).coordinate - lightPos));
-//        cout << "Light pos " << i << " " << lightPos[0] << endl;
-//        cout << "Light pos " << i << " " << lightPos[1] << endl;
-//        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
-//        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
-//        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
-//        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
+        cout << endl << "path" << endl;
+        for (Node n : path) {
+            cout << n << endl;
+        }
+        cout << "end path" << endl;
+        vec delta = normalise(nextDestination(path).coordinate - lightPos);
+        deltas.push_back(delta);
+        cout << "Light pos " << i << " " << lightPos[0] << endl;
+        cout << "Light pos " << i << " " << lightPos[1] << endl;
+        cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
+        cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
+        cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
+        cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
+        cout << "delta " << i << " " << delta[0] << endl;
+        cout << "delta " << i << " " << delta[1] << endl;
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
     }
-    cout << "len deltas " << deltas.size() << endl;
     return deltas;
 }
 
@@ -193,6 +212,12 @@ glm::vec2 MyPlayer::initializeFrog(QVector<QVector<int> >* board) {
      */
     return armaToGlm(FROG_POS);
 }
+
+Wall extendWall(Wall w) {
+    return Wall(extend(w.point1, w.point2, WALL_OFFSET),
+                extend(w.point2, w.point1, WALL_OFFSET));
+}
+
 
 
 /*
@@ -245,15 +270,19 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
         velocities.push_back(vec({0, 0}));
     }
 
-//    for (Wall* wall : this->walls) {
-//        Wall t1 = getTWall(wall->point1, wall->point2);
-//        Wall t2 = getTWall(wall->point2, wall->point1);
-//        tWalls.push_back(t1);
-//        tWalls.push_back(t2);
-//    }
-    for (int i = 0; i < tWalls.size() ; i++) {
-        this->walls.push_back(&tWalls[i]);
+    for (Wall* wall : this->walls) {
+        Wall t1 = getTWall(wall->point1, wall->point2);
+        Wall t2 = getTWall(wall->point2, wall->point1);
+        newWalls.push_back(t1);
+        newWalls.push_back(t2);
+        newWalls.push_back(extendWall(*wall));
     }
+    this->walls.clear();
+    cout << "newWalls size " << newWalls.size() << endl;
+    for (int i = 0; i < int(newWalls.size()) ; i++) {
+        this->walls.push_back(&newWalls[i]);
+    }
+    cout << "walls size " << this->walls.size() << endl;
 }
 
 /*
@@ -268,13 +297,14 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     // coordinates of mosquitos outside light
     mat coords = getCoords(board, this->lights, this->walls);
     vector<vec> deltas;
-    int numLights = this->lights.size();
     int numMosqsToCatch = size(coords)[1];
+    int numMosqsToLeave = 50;
 
     cout << "numMosqsToCatch " << numMosqsToCatch << endl;
 
-    float acceleration = 1 / (SMOOTHING * cbrt(numMosqsToCatch) + 1);
-    if (numMosqsToCatch < 50) {
+    float acceleration = 1 / (SMOOTHING * cbrt(max(numMosqsToCatch - numMosqsToLeave, 0)) + 1);
+    if (numMosqsToCatch < numMosqsToLeave) {
+//    if (true) {
         centroids = FROG_POS; // go to the frog
         deltas = getDistVecs(centroids, this->lights,
                                            true, // more than one light per centroid
@@ -282,30 +312,26 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
 
     } else {
         centroids = getCentroids(coords, this->lights.size());
-        cout << "1" << endl;
         deltas = getDistVecs(centroids, this->lights,
                                         false, // one light per centroid
                                         this->walls);
-        cout << "6" << endl;
     }
     for (int i = 0; i < this->lights.length(); i++) {
 
         // this gets the current position of the light
-        cout << "7" << endl;
         glm::vec2 currPos = this->lights.at(i)->getPosition();
-        cout << "8" << endl;
         // can't change ligth position more than one unit
-        cout << "len deltas 2 " <<  deltas.size() << endl;
         vec velocity = normalise(velocities[i] + acceleration * deltas[i]) / 2;
-                cout << "9" << endl;
         velocities[i] = velocity;
-        cout << "10" << endl;
+        cout << "currPos " << i << " " << currPos[0] << endl;
+        cout << "currPos " << i << " " << currPos[1] << endl;
+        cout << "velocity " << i << " " << velocity[0] << endl;
+        cout << "velocity " << i << " " << velocity[1] << endl;
 
 
         this->lights.at(i)->moveTo(currPos.x+velocity[0],
                                    currPos.y+velocity[1]);
 
-        cout << "11" << endl;
 
         /*
          * This is a pretty bad solution!
