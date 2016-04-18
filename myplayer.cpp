@@ -14,9 +14,9 @@ int numLights = 4;
 mat centroids;
 vector <vec> velocities;
 vec FROG_POS = {250, 250};
-vector<vec> POSITIONS = {vec({70, 70}),
+vector<vec> POSITIONS = {vec({430, 70}),
                                     vec({70, 430}),
-                                    vec({430, 70}),
+                                    vec({70, 70}),
                                     vec({430, 430})};
 
 float SMOOTHING = 20; //3000;
@@ -73,6 +73,11 @@ namespace std
 std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
     std::vector<Node>* path = new std::vector<Node>;
     std::vector<Node>::iterator it = currentPosition.neighbors.begin();
+    for (Node neighbor : currentPosition.neighbors) {
+        cout << "neighbor's neighbors" << neighbor.neighbors.size() << endl;
+        cout << "neighbor" << endl;
+        cout << neighbor << endl;
+    }
     while(it != currentPosition.neighbors.end()) {
         if(*it == destination) {
             path->push_back(currentPosition);
@@ -154,9 +159,9 @@ vector<vec> getDistVecs(mat centroids,
         for (Node n : path) {
             cout << n << endl;
         }
+        cout << "end path" << endl;
         deltas.push_back(normalise(nextDestination(path).coordinate - lightPos));
 
-            cout << endl << lightNode;
         cout << "Light pos " << i << " " << lightPos[0] << endl;
         cout << "Light pos " << i << " " << lightPos[1] << endl;
         cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
@@ -248,9 +253,9 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
 //        tWalls.push_back(t1);
 //        tWalls.push_back(t2);
 //    }
-//    for (int i = 0; i < tWalls.size() ; i++) {
-//        this->walls.push_back(&tWalls[i]);
-//    }
+    for (int i = 0; i < tWalls.size() ; i++) {
+        this->walls.push_back(&tWalls[i]);
+    }
     for (Wall* wall : this->walls) {
         cout << "p1 " << wall->point1[0] << endl;
         cout << "p1 " << wall->point1[1] << endl;
@@ -310,6 +315,6 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
          * to the frog within 5000 steps.
          */
 
-//    }
+    }
 }
 

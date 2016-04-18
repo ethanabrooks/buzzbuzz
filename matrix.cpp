@@ -142,8 +142,8 @@ Node graphBetween(vec here, vec there, QList<Wall*> walls) {
         nodes.push_back(extend(wall->point2, wall->point1));
     }
 //    cout << "Num nodes " << nodes.size() << endl;
-    for (int i = 0; i < nodes.size(); i++) {
-        for (int j = 0; j < nodes.size(); j++) {
+    for (long i = 0; i < nodes.size(); i++) {
+        for (long j = 0; j < nodes.size(); j++) {
 //            cout << "here" <<  endl << nodes[i] << endl;
 //            cout << "there" <<  endl << nodes[j] << endl;
             bool straightShot = true;
@@ -158,15 +158,17 @@ Node graphBetween(vec here, vec there, QList<Wall*> walls) {
 //                    cout << "here" <<  endl << nodes[i] << endl;
 //                    cout << "there" <<  endl << nodes[j] << endl;
                     straightShot = false;
-                    break;
                 }
             }
             if (straightShot) {
-                vector<Node> neighbs = nodes[i].neighbors;
-                nodes[i].addNeighbor(nodes[j]);
+                Node& neighbor = nodes[j];
+                nodes[i].addNeighbor(neighbor);
             }
 //            cout << "connected? " << straightShot << endl;
         }
+    }
+    for (Node n : nodes) {
+        cout << "output of graphBetween" <<endl << n << endl;
     }
     return nodes[0];
 }
