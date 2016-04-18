@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <math.h>
 #include <set>
+#include <queue>
+#include <float.h>
 
 using namespace std;
 using namespace arma;
@@ -72,6 +74,16 @@ namespace std
     };
 }
 
+namespace std
+{
+    template<> struct greater<Node>
+    {
+       bool operator() (const Node& lhs, const Node& rhs) const
+       {
+           return dist[lhs.coordinate] > dist[rhs.coordinate];
+       }
+    };
+}
 
 std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph allNeighbors) {
     std::vector<Node>* path = new std::vector<Node>;
@@ -84,17 +96,21 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
         }
         it++;
     }
-    std::map<vec, double> dist;
+
+    std::priority_queue<Node, std::vector<Node>, std::greater<Node> >* active = new std::priority_queue<Node, std::vector<Node>, std::greater<Node> >;
+    //std::map<vec, double> dist;
+    dist.clear();
     std::map<Node, vec> prev;
+    //set<Node> active;
+    currentPosition.distance = 0.0;
+    for(pair<Node, vector<Node> j: allNeighbors) {
+        dist[j.coordinate] = DBL_MAX;
+        active->push(j);
+    }
     dist[currentPosition.coordinate] = 0.0;
-    set<Node> active;
-    active.insert(currentPosition);
-    while(!active.empty()) {
-        Node current = *active.begin();
-        if(current == destination) {
-            break;
-        } else {
-            active.erase(active.begin());
+    while(!active->empty()) {
+        Node current = active->top();
+            active->pop();
             for(Node i : allNeighbors[current]) {
                 map<vec,double>::iterator it = dist.begin();
                 while(it != dist.end()) {
@@ -102,18 +118,20 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
                     it++;
 
                 }
+                if(it == dist.end()) {
+                    qDebug() << "happening" << endl;
+                }
                 map<vec,double>::iterator pre = dist.begin();
                 while(pre != dist.end()) {
                     if(pre->first[0] == current.coordinate[0] && pre->first[1] == current.coordinate[1] ) break;
                     pre++;
                 }
-                if(it == dist.end() || it->second > pre->second + getDistance(i, current)) {
+                if(it->second > pre->second + getDistance(i, current)) {
                  dist[i.coordinate] = pre->second + getDistance(i, current);
+                 i.distance = dist[i.coordinate];
                  prev[i] = current.coordinate;
-                 active.insert(i);
                 }
             }
-        }
     }
     map<Node, vec>::iterator pathIt = prev.find(destination);
     path->insert(path->begin(), Node(destination.coordinate));
@@ -122,6 +140,7 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
         path->insert(path->begin(),Node(p));
         pathIt = prev.find(Node(p));
     }
+    delete(active);
     return *path;
 }
 

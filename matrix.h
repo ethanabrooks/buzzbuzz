@@ -13,6 +13,7 @@ using namespace arma;
 class Node {
   public: vector<Node> neighbors;
           vec coordinate;
+          double distance = DBL_MAX;
 
           Node() {
               this->coordinate = {0, 0};
