@@ -41,7 +41,7 @@ class Node {
           }
 
           bool operator==(const Node& node) {
-            return all(this->coordinate==node.coordinate);
+            return all(this->coordinate == node.coordinate);
           }
 
           bool operator<(const Node& node) const {

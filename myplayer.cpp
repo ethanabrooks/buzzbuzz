@@ -23,7 +23,7 @@ vector<vec> POSITIONS = {vec({70, 70}),
 
 float SMOOTHING = 10;
 float WALL_OFFSET = 40;
-int START_HEAT_SEEKING = 1000;
+int START_HEAT_SEEKING = 300;
 vector<Wall> newWalls;
 
 namespace std
@@ -88,12 +88,14 @@ vector<Node> runDijkstra(Node currentPosition, Node destination, graph allNeighb
    map<Node, vec> prev; //
    //set<Node> active;
    currentPosition.distance = 0.0;
-   for(pair<Node, vector<Node>> j: allNeighbors) {
-       if(j.first == currentPosition) {
+   for(pair<Node, vector<Node>> neighbor: allNeighbors) {
+       if(neighbor.first == currentPosition) {
+           dist[neighbor.first.coordinate] = 0.0;
            qDebug() << "it's there" << endl;
+       } else {
+           dist[neighbor.first.coordinate] = DBL_MAX;
        }
-       dist[j.first.coordinate] = DBL_MAX;
-       active.push(j.first);
+       active.push(neighbor.first);
    }
    dist[currentPosition.coordinate] = 0.0;
    while(!active.empty()) {
@@ -333,12 +335,18 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
         glm::vec2 currPos = this->lights.at(i)->getPosition();
         // can't change ligth position more than one unit
         vec velocity = normalise(velocities[i] + acceleration * deltas[i]) / 2;
+
+        for (Wall* wall : this->walls) {
+            if (wall->isInvalidMove(currPos, currPos + armaToGlm(velocity))) {
+                velocity = velocity * -2;
+            }
+        }
+
         velocities[i] = velocity;
         cout << "currPos " << i << " " << currPos[0] << endl;
         cout << "currPos " << i << " " << currPos[1] << endl;
         cout << "velocity " << i << " " << velocity[0] << endl;
         cout << "velocity " << i << " " << velocity[1] << endl;
-
 
         this->lights.at(i)->moveTo(currPos.x+velocity[0],
                                    currPos.y+velocity[1]);
