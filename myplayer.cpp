@@ -22,6 +22,7 @@ vector<vec> POSITIONS = {vec({430, 70}),
 float SMOOTHING = 10; //3000;
 int NUM_WALLS = 6;
 float WALL_OFFSET = 40;//20;
+bool heat_seeking = false;
 vector<Wall> newWalls;
 
 double getDistance(Node vertex1, Node vertex2) {
@@ -237,13 +238,13 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
       QColor(255, 255, 0),
       QColor(255, 0, 255)
     };
-    vector<vec> positions = POSITIONS;
+
     for (int i = 0; i < this->lights.size(); i++) {
         Light* light = this->lights.at(i);
         light->trailColor = colors[i];
 
         // position lights at centroids
-        vec pos = positions[i];
+        vec pos = POSITIONS[i];
         light->setInitialPosition(pos[0], pos[1]);
 
         velocities.push_back(vec({0, 0}));
@@ -282,8 +283,9 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     cout << "numMosqsToCatch " << numMosqsToCatch << endl;
 
     float acceleration = 1 / (SMOOTHING * cbrt(max(numMosqsToCatch - numMosqsToLeave, 0)) + 1);
-    if (numMosqsToCatch < numMosqsToLeave) {
-//    if (true) {
+    if (!heat_seeking) {
+
+    } else if (numMosqsToCatch < numMosqsToLeave) {
         centroids = FROG_POS; // go to the frog
         deltas = getDistVecs(centroids, this->lights,
                                            true, // more than one light per centroid
