@@ -154,13 +154,16 @@ vector<vec> getDistVecs(mat centroids,
             cout << n << endl;
         }
         cout << "end path" << endl;
-        deltas.push_back(normalise(nextDestination(path).coordinate - lightPos));
+        vec delta = normalise(nextDestination(path).coordinate - lightPos);
+        deltas.push_back(delta);
         cout << "Light pos " << i << " " << lightPos[0] << endl;
         cout << "Light pos " << i << " " << lightPos[1] << endl;
         cout << "next dest " << i << " " << nextDestination(path).coordinate[0] << endl;
         cout << "next dest " << i << " " << nextDestination(path).coordinate[1] << endl;
         cout << "dest " << i << " " << (*closestCentroid)[0] << endl;
         cout << "dest " << i << " " << (*closestCentroid)[1] << endl;
+        cout << "delta " << i << " " << delta[0] << endl;
+        cout << "delta " << i << " " << delta[1] << endl;
         if (!replace_centroids) {
             available.erase(closestCentroid );
         }
@@ -274,11 +277,12 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     mat coords = getCoords(board, this->lights, this->walls);
     vector<vec> deltas;
     int numMosqsToCatch = size(coords)[1];
+    int numMosqsToLeave = numMosqsToCatch / 10;
 
     cout << "numMosqsToCatch " << numMosqsToCatch << endl;
 
-    float acceleration = 1 / (SMOOTHING * cbrt(numMosqsToCatch - 50) + 1);
-    if (numMosqsToCatch < 50) {
+    float acceleration = 1 / (SMOOTHING * cbrt(max(numMosqsToCatch - numMosqsToLeave, 0)) + 1);
+    if (numMosqsToCatch < numMosqsToLeave) {
 //    if (true) {
         centroids = FROG_POS; // go to the frog
         deltas = getDistVecs(centroids, this->lights,
@@ -298,6 +302,10 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
         // can't change ligth position more than one unit
         vec velocity = normalise(velocities[i] + acceleration * deltas[i]) / 2;
         velocities[i] = velocity;
+        cout << "currPos " << i << " " << currPos[0] << endl;
+        cout << "currPos " << i << " " << currPos[1] << endl;
+        cout << "velocity " << i << " " << velocity[0] << endl;
+        cout << "velocity " << i << " " << velocity[1] << endl;
 
 
         this->lights.at(i)->moveTo(currPos.x+velocity[0],
