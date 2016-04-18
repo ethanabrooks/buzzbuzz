@@ -135,13 +135,17 @@ Node extend(glm::vec2 near, glm::vec2 far) {
     return Node(near + offset);
 }
 
-Node graphBetween(vec here, vec there, QList<Wall*> walls) {
+graph graphBetween(vec here, vec there, QList<Wall*> walls) {
     vector<Node> nodes = {Node(here), Node(there)};
     for (Wall* wall : walls) {
         nodes.push_back(extend(wall->point1, wall->point2));
         nodes.push_back(extend(wall->point2, wall->point1));
     }
 //    cout << "Num nodes " << nodes.size() << endl;
+    graph neighbors;
+    for (Node n : nodes) {
+        neighbors[n] = {};
+    }
     for (long i = 0; i < nodes.size(); i++) {
         for (long j = 0; j < nodes.size(); j++) {
 //            cout << "here" <<  endl << nodes[i] << endl;
@@ -161,8 +165,7 @@ Node graphBetween(vec here, vec there, QList<Wall*> walls) {
                 }
             }
             if (straightShot) {
-                Node& neighbor = nodes[j];
-                nodes[i].addNeighbor(neighbor);
+                neighbors[nodes[i]].push_back(nodes[j]);
             }
 //            cout << "connected? " << straightShot << endl;
         }
@@ -170,7 +173,7 @@ Node graphBetween(vec here, vec there, QList<Wall*> walls) {
     for (Node n : nodes) {
         cout << "output of graphBetween" <<endl << n << endl;
     }
-    return nodes[0];
+    return neighbors;
 }
 
 

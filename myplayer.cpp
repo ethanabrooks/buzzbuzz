@@ -44,9 +44,10 @@ Node nextDestination(vector<Node> path) {
 }
 
 double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
-    Node vertex1 = graphBetween(coordinate1, coordinate2, walls);
+    graph g = graphBetween(coordinate1, coordinate2, walls);
     double totalDistance = 0;
-    vector<Node> path = runDijkstra(vertex1, Node(coordinate2));
+    Node vertex1(coordinate1), vertex2(coordinate2);
+    vector<Node> path = runDijkstra(vertex1, vertex2, g);
     Node prev = vertex1;
     Node next = nextDestination(path);
     for(int i = 2; i < path.size(); i++) {
@@ -151,8 +152,8 @@ vector<vec> getDistVecs(mat centroids,
                 double toC2 = getTotalDistance(lightPos, c2, walls);
                 return toC1 < toC2;
               });
-        Node lightNode = graphBetween(lightPos, *closestCentroid, walls);
-        vector<Node> path = runDijkstra(lightNode, Node(*closestCentroid));
+        graph g = graphBetween(lightPos, *closestCentroid, walls);
+        vector<Node> path = runDijkstra(lightNode, Node(*closestCentroid), g);
         cout << "lightNode" << endl;
         cout << lightNode << endl;
         cout << endl << "path" << endl;

@@ -63,7 +63,7 @@ mat getCoords(QVector<QVector<int> >* board, QList<Light*> lights, QList<Wall*> 
 mat getCentroids(mat coords, int num);
 vector<vec> getDistVecs(mat centroids, QList<Light*> lights, bool replace_centroids);
 vec glmToArma(glm::vec2);
-Node graphBetween(vec here, vec there, QList<Wall*> walls);
+graph graphBetween(vec here, vec there, QList<Wall*> walls);
 Wall getTWall(glm::vec2 w1, glm::vec2 w2);
 glm::vec2 armaToGlm(vec v);
 ostream& operator<<(ostream& os, const Node& node);
