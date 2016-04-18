@@ -10,6 +10,7 @@ using namespace arma;
 
 std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph allNeighbors);
 
+int roundNum = 0;
 int numLights = 4;
 mat centroids;
 vector <vec> velocities;
@@ -124,6 +125,7 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
     }
     return *path;
 }
+
 
 vector<vec> getDistVecs(mat centroids,
                         QList<Light*> lights,
@@ -274,6 +276,7 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
  */
 void MyPlayer::updateLights(QVector<QVector<int> >* board) {
 
+    roundNum++;
     // coordinates of mosquitos outside light
     mat coords = getCoords(board, this->lights, this->walls);
     vector<vec> deltas;
@@ -283,22 +286,30 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
     cout << "numMosqsToCatch " << numMosqsToCatch << endl;
 
     float acceleration = 1 / (SMOOTHING * cbrt(max(numMosqsToCatch - numMosqsToLeave, 0)) + 1);
-    if (!heat_seeking) {
-
-    } else if (numMosqsToCatch < numMosqsToLeave) {
+    if (numMosqsToCatch < numMosqsToLeave) {
         centroids = FROG_POS; // go to the frog
         deltas = getDistVecs(centroids, this->lights,
                                            true, // more than one light per centroid
                                            this->walls);
-
     } else {
-        centroids = getCentroids(coords, this->lights.size());
+        cout << "ROUND NUM " << roundNum << endl;
+        if (roundNum > 500) {
+            centroids = getCentroids(coords, this->lights.size());
+        } else {
+            vector<vec> positions = POSITIONS;
+            rotate(positions.begin(), positions.begin() + 1, positions.end());
+            centroids = mat();
+            for (vec pos : positions) {
+                centroids = join_horiz(centroids, pos);
+                cout << "centroids" << endl;
+                cout << centroids << endl;
+            }
+        }
         deltas = getDistVecs(centroids, this->lights,
                                         false, // one light per centroid
                                         this->walls);
     }
     for (int i = 0; i < this->lights.length(); i++) {
-
         // this gets the current position of the light
         glm::vec2 currPos = this->lights.at(i)->getPosition();
         // can't change ligth position more than one unit
