@@ -10,6 +10,17 @@
 using namespace std;
 using namespace arma;
 
+namespace std
+{
+    template<> struct less<vec>
+    {
+       bool operator() (const vec& lhs, const vec& rhs) const
+       {
+           return lhs[0] < rhs[0];
+       }
+    };
+}
+
 std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph allNeighbors);
 
 int numLights = 4;
@@ -65,17 +76,6 @@ double getTotalDistance(vec coordinate1, vec coordinate2, QList<Wall*> walls) {
 
 namespace std
 {
-    template<> struct less<vec>
-    {
-       bool operator() (const vec& lhs, const vec& rhs) const
-       {
-           return lhs[0] < rhs[0];
-       }
-    };
-}
-
-namespace std
-{
     template<> struct greater<Node>
     {
        bool operator() (const Node& lhs, const Node& rhs) const
@@ -104,9 +104,12 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
     std::map<Node, vec> prev;
     //set<Node> active;
     currentPosition.distance = 0.0;
-    for(pair<Node, vector<Node> j: allNeighbors) {
-        dist[j.coordinate] = DBL_MAX;
-        active->push(j);
+    for(pair<Node, vector<Node>> j: allNeighbors) {
+        if(j.first.coordinate[0] == currentPosition.coordinate[0] && j.first.coordinate[1] == currentPosition.coordinate[1]) {
+            qDebug() << "it's there" << endl;
+        }
+        dist[j.first.coordinate] = DBL_MAX;
+        active->push(j.first);
     }
     dist[currentPosition.coordinate] = 0.0;
     while(!active->empty()) {
@@ -140,6 +143,7 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
         vec p = pathIt->second;
         path->insert(path->begin(),Node(p));
         pathIt = prev.find(Node(p));
+        pathIt++;
     }
     delete(active);
     return *path;
