@@ -14,7 +14,7 @@ int numLights = 4;
 mat centroids;
 vector <vec> velocities;
 vec FROG_POS = {250, 250};
-vector<vec> POSITIONS = {vec({250, 70}),
+vector<vec> POSITIONS = {vec({430, 70}),
                                     vec({70, 430}),
                                     vec({70, 70}),
                                     vec({430, 430})};

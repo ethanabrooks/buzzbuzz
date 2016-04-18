@@ -12,7 +12,7 @@ using namespace arma;
 
 float T_WIDTH = 30;
 float WALL_INSET = 5;
-float NODE_OFFSET = 5;
+float NODE_OFFSET = 20;
 float BOARD_SIZE = 500;
 
 ostream& operator<<(ostream& os, const Node& node)
@@ -111,24 +111,14 @@ vec getLineParams(vec p1, vec p2) {
   return solve(augX, y);
 }
 
-bool liesBetween(vec linePoint1, vec linePoint2, vec point) {
-  double x1 = linePoint1[0];
-  double x2 = linePoint2[0];
-  double xPoint = point[0];
-  double e = .01;
-  if (x1 == x2) {
-    x1 = linePoint1[1];
-    x2 = linePoint2[1];
-    xPoint = point[1];
-  }
-  return (x1 + e < xPoint && xPoint + e < x2)
-      || (x1 > xPoint + e && xPoint > x2 + e);
-}
-
 bool inBounds(Node n) {
-    return liesBetween(vec{0, 0},
-                       vec{BOARD_SIZE, BOARD_SIZE},
-                       n.coordinate);
+    double x = n.coordinate[0];
+    double y = n.coordinate[1];
+
+    return 0 <= x
+           && x <= BOARD_SIZE
+           && 0 <= y
+           && y <= BOARD_SIZE;
 }
 
 Node extend(glm::vec2 near, glm::vec2 far) {
@@ -139,8 +129,14 @@ Node extend(glm::vec2 near, glm::vec2 far) {
 graph graphBetween(vec here, vec there, QList<Wall*> walls) {
     vector<Node> nodes = {Node(here), Node(there)};
     for (Wall* wall : walls) {
-        nodes.push_back(extend(wall->point1, wall->point2));
-        nodes.push_back(extend(wall->point2, wall->point1));
+        Node n1 = extend(wall->point1, wall->point2);
+        Node n2 = extend(wall->point2, wall->point1);
+        if (inBounds(n1)) {
+            nodes.push_back(n1);
+        }
+        if (inBounds(n2)) {
+            nodes.push_back(n2);
+        }
     }
 //    cout << "Num nodes " << nodes.size() << endl;
     graph neighbors;
@@ -153,9 +149,7 @@ graph graphBetween(vec here, vec there, QList<Wall*> walls) {
 //            cout << "there" <<  endl << nodes[j] << endl;
             bool straightShot = true;
             for (Wall* wall : walls) {
-                if (wall->isInvalidMove(nodes[i].glm(), nodes[j].glm())
-                        || !inBounds(nodes[i])
-                        || !inBounds(nodes[j])) {
+                if (wall->isInvalidMove(nodes[i].glm(), nodes[j].glm())) {
 
 //                    cout << "Not valid" << endl;
 //                    cout << "here" <<  endl << nodes[i].coordinate[0] << " " << 500 - nodes[i].coordinate[1] << endl;
