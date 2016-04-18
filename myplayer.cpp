@@ -89,16 +89,16 @@ vector<Node> runDijkstra(Node currentPosition, Node destination, graph allNeighb
    map<Node, vec> prev; //
    //set<Node> active;
    currentPosition.distance = 0.0;
-   for(pair<Node, vector<Node>> neighbor: allNeighbors) {
-       if(neighbor.first == currentPosition) {
-           dist[neighbor.first.coordinate] = 0.0;
+   for(pair<Node, vector<Node>> j: allNeighbors) {
+       if(j.first == currentPosition) {
            qDebug() << "it's there" << endl;
-       } else {
-           dist[neighbor.first.coordinate] = DBL_MAX;
+           dist[currentPosition.coordinate] = 0.0;
+       }else {
+        dist[j.first.coordinate] = DBL_MAX;
        }
-       active.push(neighbor.first);
+       active.push(j.first);
    }
-   dist[currentPosition.coordinate] = 0.0;
+   //dist[currentPosition.coordinate] = 0.0;
    while(!active.empty()) {
      Node current = active.top();
      active.pop();
