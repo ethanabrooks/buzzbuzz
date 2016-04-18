@@ -13,6 +13,7 @@ using namespace arma;
 class Node {
   public: vector<Node> neighbors;
           vec coordinate;
+          double distance = DBL_MAX;
 
           Node() {
               this->coordinate = {0, 0};
@@ -57,7 +58,6 @@ class Node {
 };
 
 typedef map<Node, vector<Node>> graph;
-
 Node getWallNode(vec near, vec far, double lightRadius);
 mat getCoords(QVector<QVector<int> >* board, QList<Light*> lights, QList<Wall*> walls);
 mat getCentroids(mat coords, int num);
@@ -66,5 +66,7 @@ vec glmToArma(glm::vec2);
 graph graphBetween(vec here, vec there, QList<Wall*> walls);
 Wall getTWall(glm::vec2 w1, glm::vec2 w2);
 glm::vec2 armaToGlm(vec v);
+glm::vec2 setLength(glm::vec2 v, float length);
 ostream& operator<<(ostream& os, const Node& node);
+glm::vec2 extend(glm::vec2 near, glm::vec2 far, float offset);
 #endif
