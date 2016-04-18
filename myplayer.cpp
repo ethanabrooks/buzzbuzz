@@ -71,15 +71,10 @@ namespace std
 }
 
 
-std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
+std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph allNeighbors) {
     std::vector<Node>* path = new std::vector<Node>;
-    std::vector<Node>::iterator it = currentPosition.neighbors.begin();
-    for (Node neighbor : currentPosition.neighbors) {
-        cout << "neighbor's neighbors" << neighbor.neighbors.size() << endl;
-        cout << "neighbor" << endl;
-        cout << neighbor << endl;
-    }
-    while(it != currentPosition.neighbors.end()) {
+    std::vector<Node>::iterator it = allNeighbors[currentPosition].begin();
+    while(it != allNeighbors[currentPosition].end()) {
         if(*it == destination) {
             path->push_back(currentPosition);
             path->push_back(destination);
@@ -98,7 +93,7 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination) {
             break;
         } else {
             active.erase(active.begin());
-            for(Node i : current.neighbors) {
+            for(Node i : allNeighbors[current]) {
                 map<vec,double>::iterator it = dist.begin();
                 while(it != dist.end()) {
                     if(it->first[0] == i.coordinate[0] && it->first[1] == i.coordinate[1] ) break;
