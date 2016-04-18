@@ -245,12 +245,12 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
         velocities.push_back(vec({0, 0}));
     }
 
-//    for (Wall* wall : this->walls) {
-//        Wall t1 = getTWall(wall->point1, wall->point2);
-//        Wall t2 = getTWall(wall->point2, wall->point1);
-//        tWalls.push_back(t1);
-//        tWalls.push_back(t2);
-//    }
+    for (Wall* wall : this->walls) {
+        Wall t1 = getTWall(wall->point1, wall->point2);
+        Wall t2 = getTWall(wall->point2, wall->point1);
+        tWalls.push_back(t1);
+        tWalls.push_back(t2);
+    }
     for (int i = 0; i < tWalls.size() ; i++) {
         this->walls.push_back(&tWalls[i]);
     }
