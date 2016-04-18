@@ -21,7 +21,8 @@ vector<vec> POSITIONS = {vec({430, 70}),
 
 float SMOOTHING = 10; //3000;
 int NUM_WALLS = 6;
-vector<Wall> tWalls;
+float NODE_OFFSET = 20;
+vector<Wall> newWalls;
 
 double getDistance(Node vertex1, Node vertex2) {
     double xdiff = vertex1.coordinate[0] - vertex2.coordinate[0];
@@ -118,7 +119,6 @@ std::vector<Node>& runDijkstra(Node currentPosition, Node destination, graph all
     while(pathIt != prev.find(currentPosition)) {
         vec p = pathIt->second;
         path->insert(path->begin(),Node(p));
-        //path->insert(path->begin(),*next);
         pathIt = prev.find(Node(p));
     }
     return *path;
@@ -139,7 +139,6 @@ vector<vec> getDistVecs(mat centroids,
         // convert glm::vec to vec
         vec lightPos = glmToArma(light->getPosition());
 
-//        cout << "2" << endl;
         // get direction of shortest distance
         vector<vec>::iterator closestCentroid =
           min_element(available.begin(), available.end(),
@@ -148,11 +147,8 @@ vector<vec> getDistVecs(mat centroids,
                 double toC2 = getDistance(Node(lightPos), Node(c1));
                 return toC1 < toC2;
               });
-//        cout << "3" << endl;
         graph g = graphBetween(lightPos, *closestCentroid, walls);
-//        cout << "4" << endl;
         vector<Node> path = runDijkstra(Node(lightPos), Node(*closestCentroid), g);
-//        cout << "5" << endl;
         cout << endl << "path" << endl;
         for (Node n : path) {
             cout << n << endl;
@@ -169,7 +165,6 @@ vector<vec> getDistVecs(mat centroids,
             available.erase(closestCentroid );
         }
     }
-    cout << "len deltas " << deltas.size() << endl;
     return deltas;
 }
 
@@ -193,6 +188,16 @@ glm::vec2 MyPlayer::initializeFrog(QVector<QVector<int> >* board) {
      */
     return armaToGlm(FROG_POS);
 }
+
+glm::vec2 extend(glm::vec2 near, glm::vec2 far) {
+    glm::vec2 offset = setLength(near - far, NODE_OFFSET);
+    return near + offset;
+}
+
+Wall extendWall(Wall w) {
+    return Wall(extend(w.point1, w.point2), extend(w.point2, w.point1));
+}
+
 
 
 /*
@@ -248,12 +253,16 @@ void MyPlayer::initializeLights(QVector<QVector<int> >* board) {
     for (Wall* wall : this->walls) {
         Wall t1 = getTWall(wall->point1, wall->point2);
         Wall t2 = getTWall(wall->point2, wall->point1);
-        tWalls.push_back(t1);
-        tWalls.push_back(t2);
+        newWalls.push_back(t1);
+        newWalls.push_back(t2);
+        newWalls.push_back(extendWall(*wall));
     }
-    for (int i = 0; i < tWalls.size() ; i++) {
-        this->walls.push_back(&tWalls[i]);
+    this->walls.clear();
+    cout << "newWalls size " << newWalls.size() << endl;
+    for (int i = 0; i < newWalls.size() ; i++) {
+        this->walls.push_back(&newWalls[i]);
     }
+    cout << "walls size " << this->walls.size() << endl;
 }
 
 /*
@@ -282,30 +291,22 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
 
     } else {
         centroids = getCentroids(coords, this->lights.size());
-//        cout << "1" << endl;
         deltas = getDistVecs(centroids, this->lights,
                                         false, // one light per centroid
                                         this->walls);
-//        cout << "6" << endl;
     }
     for (int i = 0; i < this->lights.length(); i++) {
 
         // this gets the current position of the light
-//        cout << "7" << endl;
         glm::vec2 currPos = this->lights.at(i)->getPosition();
-//        cout << "8" << endl;
         // can't change ligth position more than one unit
-//        cout << "len deltas 2 " <<  deltas.size() << endl;
         vec velocity = normalise(velocities[i] + acceleration * deltas[i]) / 2;
-//                cout << "9" << endl;
         velocities[i] = velocity;
-//        cout << "10" << endl;
 
 
         this->lights.at(i)->moveTo(currPos.x+velocity[0],
                                    currPos.y+velocity[1]);
 
-//        cout << "11" << endl;
 
         /*
          * This is a pretty bad solution!

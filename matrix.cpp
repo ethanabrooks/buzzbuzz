@@ -10,9 +10,8 @@
 using namespace std;
 using namespace arma;
 
-float T_WIDTH = 30;
-float WALL_INSET = 5;
-float NODE_OFFSET = 20;
+float T_WIDTH = 20;
+float WALL_INSET = 10;
 float BOARD_SIZE = 500;
 
 ostream& operator<<(ostream& os, const Node& node)
@@ -121,16 +120,11 @@ bool inBounds(Node n) {
            && y <= BOARD_SIZE;
 }
 
-Node extend(glm::vec2 near, glm::vec2 far) {
-    glm::vec2 offset = setLength(near - far, NODE_OFFSET);
-    return Node(near + offset);
-}
-
 graph graphBetween(vec here, vec there, QList<Wall*> walls) {
     vector<Node> nodes = {Node(here), Node(there)};
     for (Wall* wall : walls) {
-        Node n1 = extend(wall->point1, wall->point2);
-        Node n2 = extend(wall->point2, wall->point1);
+        Node n1 = Node(wall->point1);
+        Node n2 = Node(wall->point2);
         if (inBounds(n1)) {
             nodes.push_back(n1);
         }
@@ -138,38 +132,24 @@ graph graphBetween(vec here, vec there, QList<Wall*> walls) {
             nodes.push_back(n2);
         }
     }
-//    cout << "Num nodes " << nodes.size() << endl;
     graph neighbors;
     for (Node n : nodes) {
         neighbors[n] = {};
     }
     for (long i = 0; i < nodes.size(); i++) {
         for (long j = 0; j < nodes.size(); j++) {
-//            cout << "here" <<  endl << nodes[i] << endl;
-//            cout << "there" <<  endl << nodes[j] << endl;
             bool straightShot = true;
             for (Wall* wall : walls) {
                 if (wall->isInvalidMove(nodes[i].glm(), nodes[j].glm())) {
 
-//                    cout << "Not valid" << endl;
-//                    cout << "here" <<  endl << nodes[i].coordinate[0] << " " << 500 - nodes[i].coordinate[1] << endl;
-//                    cout << "there" <<  endl << nodes[j].coordinate[0] << " " << 500 - nodes[j].coordinate[1] << endl;
                     straightShot = false;
                 }
             }
             if (straightShot) {
                 neighbors[nodes[i]].push_back(nodes[j]);
             }
-//            cout << "connected? " << straightShot << endl;
         }
     }
-//    for (Node n0 : nodes) {
-//        cout << endl << "next" << endl << n0.coordinate[0] << '\t' << 500 - n0.coordinate[1] << endl;
-//        for (Node n_ : neighbors[n0]) {
-//            cout <<  n_.coordinate[0] << "\t"
-//                 << 500 - n_.coordinate[1] << endl;
-//        }
-//    }
     return neighbors;
 }
 

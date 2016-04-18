@@ -66,5 +66,6 @@ vec glmToArma(glm::vec2);
 graph graphBetween(vec here, vec there, QList<Wall*> walls);
 Wall getTWall(glm::vec2 w1, glm::vec2 w2);
 glm::vec2 armaToGlm(vec v);
+glm::vec2 setLength(glm::vec2 v, float length);
 ostream& operator<<(ostream& os, const Node& node);
 #endif
