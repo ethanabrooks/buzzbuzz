@@ -53,7 +53,8 @@ double getDistance(Node vertex1, Node vertex2) {
 
 Node nextDestination(vector<Node> path) {
     switch (path.size()) {
-        case 0: throw "path must not be empty";
+        case 0:
+            throw "path must not be empty";
         case 1:
             return path[0];
         default:
@@ -67,7 +68,7 @@ vector<Node> runDijkstra(Node currentPosition, Node destination, graph neighbors
    map<Node, vector<Node>> paths;
    for(pair<Node, vector<Node>> neighbor: neighbors) {
        distances[neighbor.first] = DBL_MAX;
-       paths[neighbor.first] = {};
+       paths[neighbor.first] = {neighbor.first};
        active.push_back(neighbor.first);
    }
    distances[currentPosition] = 0;
