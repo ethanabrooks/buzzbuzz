@@ -15,14 +15,18 @@ float T_WIDTH = 20;
 float WALL_INSET = 10;
 float NODE_OFFSET = 5;//20;
 
+bool operator==(Node lhs, Node rhs) {
+    double e = .01;
+    return all(abs(static_cast<vec>(lhs) - static_cast<vec>(rhs)) < e);
+}
+
+bool operator<(Node lhs, Node rhs) {
+    return lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0];
+}
+
 ostream& operator<<(ostream& os, const Node& node)
 {
-  os << node.coordinate[0] << ", " << node.coordinate[1] << endl;
-  for (Node neighbor : node.neighbors) {
-    vec coord = neighbor.coordinate;
-    os << "- " << coord[0] << ", " << coord[1] << endl;
-  }
-  return os;
+  return os << node[0] << ", " << node[1] << endl;
 }
 
 glm::vec2 setLength(glm::vec2 v, float length) {
@@ -58,11 +62,7 @@ glm::vec2 armaToGlm(vec v) {
 }
 
 glm::vec2 nodeToGlm(Node n) {
-    return armaToGlm(n.coordinate);
-}
-
-glm::vec2 Node::glm() {
-    return nodeToGlm(*this);
+    return armaToGlm(n);
 }
 
 mat getCoords(QVector<QVector<int> >* board,
@@ -112,8 +112,8 @@ vec getLineParams(vec p1, vec p2) {
 }
 
 bool inBounds(Node n) {
-    double x = n.coordinate[0];
-    double y = n.coordinate[1];
+    double x = n[0];
+    double y = n[1];
 
     return 0 <= x
            && x <= BOARD_SIZE
