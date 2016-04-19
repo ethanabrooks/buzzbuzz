@@ -20,6 +20,10 @@ bool operator==(Node lhs, Node rhs) {
     return all(abs(static_cast<vec>(lhs) - static_cast<vec>(rhs)) < e);
 }
 
+bool operator!=(Node lhs, Node rhs) {
+    return !(lhs == rhs);
+}
+
 bool operator<(Node lhs, Node rhs) {
     return lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0];
 }
@@ -152,7 +156,9 @@ graph graphBetween(vec here, vec there, QList<Wall*> walls) {
                 }
             }
             if (straightShot) {
-                neighbors[nodes[i]].push_back(nodes[j]);
+                if (nodes[i] != nodes[j]) {
+                    neighbors[nodes[i]].push_back(nodes[j]);
+                }
             }
         }
     }

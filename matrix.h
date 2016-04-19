@@ -23,6 +23,7 @@ public: Node(vec v): vec(v) {}
 typedef map<Node, vector<Node>> graph;
 Node getWallNode(vec near, vec far, double lightRadius);
 bool operator==(Node lhs, Node rhs);
+bool operator!=(Node lhs, Node rhs);
 bool operator<(Node lhs, Node rhs);
 mat getCoords(QVector<QVector<int> >* board, QList<Light*> lights, QList<Wall*> walls);
 mat getCentroids(mat coords, int num);

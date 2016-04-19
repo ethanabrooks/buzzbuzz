@@ -23,8 +23,8 @@ vector<vec> POSITIONS = {vec({70, 70}),
 
 float SMOOTHING = 10;
 float WALL_OFFSET = 40;
-int START_HEAT_SEEKING = 200;
-bool DEBUG = true;
+int START_HEAT_SEEKING = 300;
+bool DEBUG = false;
 vector<Wall> newWalls;
 
 //struct less<vec>{
@@ -61,44 +61,35 @@ Node nextDestination(vector<Node> path) {
     }
 }
 
-vector<Node> runDijkstra(Node currentPosition, Node destination, graph allNeighbors) {
+vector<Node> runDijkstra(Node currentPosition, Node destination, graph neighbors) {
    map<Node, double> distances;
-   auto cmp = [&](Node lhs, Node rhs) {
-       return distances[lhs] < distances[rhs];
-   };
-   priority_queue<Node, vector<Node>, decltype(cmp)> active(cmp);
+   vector<Node> active;
    map<Node, vector<Node>> paths;
-   for(pair<Node, vector<Node>> neighbor: allNeighbors) {
+   for(pair<Node, vector<Node>> neighbor: neighbors) {
        distances[neighbor.first] = DBL_MAX;
        paths[neighbor.first] = {};
-       active.push(neighbor.first);
+       active.push_back(neighbor.first);
    }
    distances[currentPosition] = 0;
    paths[currentPosition] = {currentPosition};
    while(!active.empty()) {
-     Node current = active.top();
-     active.pop();
-     for(Node neighbor : allNeighbors[current]) {
-         map<Node,double>::iterator neighborDist = distances.find(neighbor);
-         map<Node,double>::iterator currentDist = distances.find(current);
-         double distThroughCurrent = currentDist->second + getDistance(neighbor, current);
-         if(neighborDist->second > distThroughCurrent) {
+     vector<Node>::iterator currentIt =
+             min_element(active.begin(), active.end(),
+                         [&](Node n1, Node n2){
+                              return distances[n1] < distances[n2];
+                         });
+     Node current = *currentIt;
+     active.erase(currentIt);
+     for(Node neighbor : neighbors[current]) {
+         double distThroughCurrent = distances[current] + getDistance(neighbor, current);
+         if(distances[neighbor] > distThroughCurrent) {
            distances[neighbor] = distThroughCurrent;
            paths[neighbor] = paths[current];
-           paths[neighbor].push_back(current);
+           paths[neighbor].push_back(neighbor);
          }
       }
    }
-//   map<Node, vec>::iterator prev = paths.find(destination);
-//   path.insert(path.begin(), Node(destination));
-//   while(prev != paths.find(currentPosition)) {
-//       vec p = prev->second;
-//       path.insert(path.begin(),Node(p));
-//       prev = paths.find(Node(p));
-////       pathIt++;
-//   }
-   vector<Node> path = paths[currentPosition];
-   cout << "path size " << path.size() << endl;
+   vector<Node> path = paths[destination];
    return path;
 }
 
@@ -128,7 +119,6 @@ vec getDelta(Light* light, vec destination, QList<Wall*> walls) {
     vector<Node> path = runDijkstra(Node(lightPos), Node(destination), g);
     vec nextDest = static_cast<vec>(nextDestination(path));
     vec delta = normalise(nextDest - lightPos);
-    cout << delta << endl;
     if (DEBUG) {
         cout << "lightPos" << endl;
         cout << lightPos << endl;
@@ -300,6 +290,8 @@ void MyPlayer::updateLights(QVector<QVector<int> >* board) {
 
     float acceleration = 1 / (SMOOTHING * cbrt(max(numMosqsToCatch - numMosqsToLeave, 0)) + 1);
     if (numMosqsToCatch < numMosqsToLeave) {
+//    if (true) {
+
         centroids = FROG_POS; // go to the frog
         deltas = getDistVecs(centroids, this->lights,
                                            true, // more than one light per centroid
