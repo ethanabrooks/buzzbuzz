@@ -17,44 +17,33 @@ mat centroids;
 vector <vec> velocities;
 vec FROG_POS = {250, 250};
 vector<vec> POSITIONS = {vec({70, 70}),
-                                    vec({430, 70}),
-                                    vec({430, 430}),
-                                    vec({70, 430})};
+                         vec({430, 70}),
+                         vec({430, 430}),
+                         vec({70, 430})};
 
 float SMOOTHING = 10;
 float WALL_OFFSET = 40;
-int START_HEAT_SEEKING = 300;
+int START_HEAT_SEEKING = 200;
 bool DEBUG = true;
 vector<Wall> newWalls;
 
-namespace std
-{
-    template<> struct less<vec>
-    {
-       bool operator() (const vec& lhs, const vec& rhs) const
-       {
-           return lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0];
-       }
-    };
-}
+//struct less<vec>{
+//   bool operator() (const vec& lhs, const vec& rhs) const {
+//       return lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0];
+//   }
+//};
 
-map<vec, double> dist;
 
-namespace std
-{
-    template<> struct greater<Node>
-    {
-       bool operator() (const Node& lhs, const Node& rhs) const
-       {
-           return dist[lhs.coordinate] > dist[rhs.coordinate];
-       }
-    };
-}
+//struct greater<Node>{
+//   bool operator() (const Node& lhs, const Node& rhs) const {
+//       return distances[lhs.coordinate] > distances[rhs.coordinate];
+//   }
+//};
 
 
 double getDistance(Node vertex1, Node vertex2) {
-    double xdiff = vertex1.coordinate[0] - vertex2.coordinate[0];
-    double ydiff = vertex1.coordinate[1] - vertex2.coordinate[1];
+    double xdiff = vertex1[0] - vertex2[0];
+    double ydiff = vertex1[1] - vertex2[1];
     double distance;
     distance = pow(xdiff, 2) + pow(ydiff, 2);
     distance = sqrt(distance);
@@ -73,53 +62,44 @@ Node nextDestination(vector<Node> path) {
 }
 
 vector<Node> runDijkstra(Node currentPosition, Node destination, graph allNeighbors) {
-    vector<Node> path;
-    //vector<Node>::iterator it = allNeighbors[currentPosition].begin();
-   //while(it != allNeighbors[currentPosition].end()) {
-       //if(*it == destination) {
-           //path->push_back(currentPosition);
-           //path->push_back(destination);
-           //return *path;
-       //}
-       //it++;
-   //}
-   priority_queue<Node, vector<Node>, greater<Node>> active;
-   // map<vec, double> dist;
-   dist.clear();
-   map<Node, vec> prev; //
-   //set<Node> active;
+   vector<Node> path;
+   map<vec, double> distances;
+   auto cmp = [](Node lhs, Node rhs) {
+       return distances[lhs] < distances[rhs];
+   };
+   priority_queue<Node, vector<Node>, decltype(cmp)> active(cmp);
+   map<Node, vector<Node>> paths;
    currentPosition.distance = 0.0;
-   for(pair<Node, vector<Node>> j: allNeighbors) {
-       if(j.first == currentPosition) {
-           qDebug() << "it's there" << endl;
-           dist[currentPosition.coordinate] = 0.0;
-       }else {
-        dist[j.first.coordinate] = DBL_MAX;
-       }
-       active.push(j.first);
+   for(pair<Node, vector<Node>> neighbor: allNeighbors) {
+       distances[neighbor.first.coordinate] = DBL_MAX;
+       paths[neighbor.first.coordinate] = {};
+       active.push(neighbor.first);
    }
-   //dist[currentPosition.coordinate] = 0.0;
+   distances[currentPosition.coordinate] = 0;
+   paths[currentPosition] = {currentPosition};
    while(!active.empty()) {
      Node current = active.top();
      active.pop();
      for(Node neighbor : allNeighbors[current]) {
-         map<vec,double>::iterator it = dist.find(neighbor.coordinate);
-         map<vec,double>::iterator pre = dist.find(current.coordinate);
-         double distThroughI = pre->second + getDistance(neighbor, current);
-         if(it->second > distThroughI) {
-           dist[neighbor.coordinate] = distThroughI;
-           prev[neighbor] = current.coordinate;
+         map<vec,double>::iterator neighborDist = distances.find(neighbor.coordinate);
+         map<vec,double>::iterator currentDist = distances.find(current.coordinate);
+         double distThroughCurrent = currentDist->second + getDistance(neighbor, current);
+         if(neighborDist->second > distThroughCurrent) {
+           distances[neighbor.coordinate] = distThroughCurrent;
+           paths[neighbor] = paths[current];
+           paths[neighbor].push_back(current);
          }
-     }
+      }
    }
-   map<Node, vec>::iterator pathIt = prev.find(destination);
-   path.insert(path.begin(), Node(destination.coordinate));
-   while(pathIt != prev.find(currentPosition)) {
-       vec p = pathIt->second;
-       path.insert(path.begin(),Node(p));
-       pathIt = prev.find(Node(p));
-//       pathIt++;
-   }
+//   map<Node, vec>::iterator prev = paths.find(destination);
+//   path.insert(path.begin(), Node(destination.coordinate));
+//   while(prev != paths.find(currentPosition)) {
+//       vec p = prev->second;
+//       path.insert(path.begin(),Node(p));
+//       prev = paths.find(Node(p));
+////       pathIt++;
+//   }
+   vector<Node> path = paths[currentPosition.coordinate];
    cout << "path size " << path.size() << endl;
    return path;
 }
@@ -150,6 +130,8 @@ vec getDelta(Light* light, vec destination, QList<Wall*> walls) {
     vector<Node> path = runDijkstra(Node(lightPos), Node(destination), g);
     vec delta = normalise(nextDestination(path).coordinate - lightPos);
     if (DEBUG) {
+        cout << "lightPos" << endl;
+        cout << lightPos << endl;
         cout << endl << "graph" << endl;
         for (Node n : g[Node(lightPos)]) {
             cout << "-" << n << endl;
